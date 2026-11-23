@@ -552,7 +552,7 @@
       question: problem.querySelector(".question").textContent,
       level: problem.querySelector(".level").textContent,
       hint: problem.querySelector('[id^="hint-"]').textContent.replace(/^Hint:\s*/, ""),
-      explanation: problem.querySelector('[id^="answer-"]').textContent.replace(/^Answer:\s*/, "")
+      explanation: problem.querySelector('.reveal[id^="answer-"]').textContent.replace(/^Answer:\s*/, "")
     }));
 
     originalProblems[2].question = "How many positive divisors of 2⁸ · 3⁵ are perfect squares?";
@@ -565,7 +565,18 @@
 
     let savedState = loadSavedState();
     for (const set of rotationSets) {
-      if (!savedState.sets[set.id]) savedState.sets[set.id] = set;
+      const savedSet = savedState.sets[set.id];
+      if (!savedSet || !Array.isArray(savedSet.problems)) {
+        savedState.sets[set.id] = set;
+        continue;
+      }
+      const canonicalProblems = new Map(set.problems.map(problem => [problem.id, problem]));
+      for (const problem of savedSet.problems) {
+        if (!problem || typeof problem !== "object") continue;
+        if (typeof problem.explanation === "string" && problem.explanation.trim()) continue;
+        const canonicalProblem = canonicalProblems.get(problem.id);
+        if (canonicalProblem) problem.explanation = canonicalProblem.explanation;
+      }
     }
 
     const todayInitially = localDateKey(new Date());
