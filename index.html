@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Daily 10 — Math Challenge</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f4ef;
+      --card: #fffefa;
+      --ink: #20231f;
+      --muted: #73766e;
+      --line: #e7e5dc;
+      --green: #355e48;
+      --green-soft: #e9f0e9;
+      --orange: #e18b55;
+      --shadow: 0 12px 36px rgb(35 39 32 / 5%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; }
+
+    .page { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 82px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 15px; font-weight: 750; letter-spacing: -.03em; }
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--green);
+      color: white;
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-style: italic;
+    }
+
+    .header-note { color: var(--muted); font-size: 13px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: end;
+      padding: 64px 0 38px;
+    }
+
+    .eyebrow {
+      margin: 0 0 13px;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(42px, 6vw, 68px);
+      font-weight: 500;
+      letter-spacing: -.055em;
+      line-height: 1;
+    }
+
+    .intro { max-width: 580px; margin: 18px 0 0; color: var(--muted); font-size: 16px; }
+
+    .score-card {
+      min-width: 178px;
+      padding: 17px 19px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    .score-label { display: block; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .score-value { display: block; margin-top: 4px; font-family: Georgia, serif; font-size: 25px; }
+
+    .topics { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 23px; }
+    .topic-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgb(255 254 250 / 65%);
+      color: #565950;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .topic-chip::before { width: 7px; height: 7px; border-radius: 50%; background: var(--dot); content: ""; }
+    .topic-chip[data-topic="Algebra"] { --dot: #d78a57; }
+    .topic-chip[data-topic="Geometry"] { --dot: #6589a0; }
+    .topic-chip[data-topic="Combinatorics & Probability"] { --dot: #a17b9a; }
+    .topic-chip[data-topic="Number Theory"] { --dot: #7b9369; }
+
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 0 14px; }
+    .section-heading h2 { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: -.01em; }
+    .section-heading span { color: var(--muted); font-size: 12px; }
+
+    .problem-list { display: grid; gap: 12px; padding-bottom: 48px; }
+    .problem {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      transition: border-color .2s, opacity .2s;
+    }
+    .problem.is-solved { border-color: #b6c8b7; }
+    .problem-top { display: grid; grid-template-columns: 48px 1fr auto; gap: 16px; align-items: start; padding: 22px 23px 20px; }
+    .problem-number {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .problem-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .problem-heading h3 { margin: 0; font-size: 15px; font-weight: 750; }
+    .badge { padding: 3px 8px; border-radius: 999px; background: #f1f0ea; color: #686b63; font-size: 10px; font-weight: 750; }
+    .level { color: var(--muted); font-size: 11px; font-weight: 650; white-space: nowrap; }
+    .question { max-width: 750px; margin: 10px 0 0; font-size: 15px; line-height: 1.65; }
+    .question strong { font-weight: 750; }
+    .problem-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 23px 18px 87px; }
+    .action {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: #4e554e;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background .15s, border-color .15s;
+    }
+    .action:hover { border-color: #b7c5b7; background: var(--green-soft); }
+    .action[aria-expanded="true"] { border-color: #b7c5b7; background: var(--green-soft); color: var(--green); }
+    .answer-form { max-width: 430px; margin: 0 23px 18px 87px; }
+    .answer-form label { display: block; margin-bottom: 6px; color: #565950; font-size: 12px; font-weight: 700; }
+    .answer-entry { display: flex; gap: 8px; }
+    .answer-entry input {
+      width: 100%;
+      min-width: 0;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+    }
+    .answer-entry input:focus { border-color: #8ca48e; outline: 3px solid rgb(53 94 72 / 12%); }
+    .check-answer { flex: 0 0 auto; padding: 8px 13px; border: 0; border-radius: 8px; background: var(--green); color: white; cursor: pointer; font-size: 12px; font-weight: 750; }
+    .check-answer:hover { background: #294a39; }
+    .answer-feedback { margin: 7px 0 0; font-size: 12px; font-weight: 700; }
+    .answer-feedback[data-state="correct"] { color: var(--green); }
+    .answer-feedback[data-state="incorrect"] { color: #a64f3c; }
+
+    .reveal { display: none; margin: 0 23px 19px 87px; padding: 12px 14px; border-radius: 9px; background: #f5f6f1; color: #4b5249; font-size: 13px; }
+    .reveal.is-visible { display: block; }
+    .reveal strong { color: var(--green); }
+
+    .footer-note { padding: 0 0 32px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 28px, 1120px); }
+      header { min-height: 68px; }
+      .header-note { font-size: 11px; }
+      .hero { grid-template-columns: 1fr; gap: 22px; padding: 45px 0 28px; }
+      .score-card { width: fit-content; min-width: 150px; }
+      .problem-top { grid-template-columns: 38px 1fr; gap: 12px; padding: 17px 15px 16px; }
+      .problem-number { width: 34px; height: 34px; }
+      .level { grid-column: 2; grid-row: 2; }
+      .problem-actions { padding: 0 15px 15px 65px; }
+      .answer-form { margin: 0 15px 15px 65px; }
+      .reveal { margin: 0 15px 16px 65px; }
+      .question { font-size: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <a class="brand" href="#" aria-label="Daily 10 home" style="color:inherit;text-decoration:none">
+        <span class="brand-mark" aria-hidden="true">∑</span>
+        <span>Daily 10</span>
+      </a>
+      <div class="header-note">A little math, every day.</div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Your daily math challenge</p>
+          <h1 id="page-title">Ten problems.<br>One sharper you.</h1>
+          <p class="intro">A fresh ladder of original contest-style problems, from a quick warm-up to an AIME-level finish. Take them one at a time.</p>
+        </div>
+        <aside class="score-card" aria-live="polite">
+          <span class="score-label">Today's progress</span>
+          <span class="score-value"><span id="solved-count">0</span> <span style="color:#9a9b94">/ 10 solved</span></span>
+        </aside>
+      </section>
+
+      <section aria-label="Topics covered">
+        <div class="topics">
+          <span class="topic-chip" data-topic="Algebra">Algebra</span>
+          <span class="topic-chip" data-topic="Geometry">Geometry</span>
+          <span class="topic-chip" data-topic="Combinatorics & Probability">Combinatorics &amp; Probability</span>
+          <span class="topic-chip" data-topic="Number Theory">Number Theory</span>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <h2>Today's set <span style="color:var(--muted);font-weight:500">· 10 problems</span></h2>
+        <span>Difficulty increases as you go ↓</span>
+      </div>
+
+      <section class="problem-list" aria-label="Daily problems">
+        <article class="problem" data-id="1" data-answer="6">
+          <div class="problem-top">
+            <div class="problem-number">01</div>
+            <div>
+              <div class="problem-heading"><h3>Quick Balance</h3><span class="badge">Algebra</span></div>
+              <p class="question">What is the value of <strong>x</strong> if 3x + 7 = 25?</p>
+            </div>
+            <span class="level">Warm-up</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-1" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-1" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-1">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-1" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 1"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-1"><strong>Hint:</strong> Undo the +7 first, then divide by 3.</div>
+          <div class="reveal" id="answer-1"><strong>Answer: 6.</strong> Subtract 7 to get 3x = 18, then divide by 3.</div>
+        </article>
+
+        <article class="problem" data-id="2" data-answer="66">
+          <div class="problem-top">
+            <div class="problem-number">02</div>
+            <div>
+              <div class="problem-heading"><h3>Rectangle Reasoning</h3><span class="badge">Geometry</span></div>
+              <p class="question">A rectangle has perimeter 34 and width 6. What is its area?</p>
+            </div>
+            <span class="level">Warm-up</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-2" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-2" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-2">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-2" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 2"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-2"><strong>Hint:</strong> Use P = 2(length + width) to find the length first.</div>
+          <div class="reveal" id="answer-2"><strong>Answer: 66.</strong> The length is 17 − 6 = 11, so the area is 11 × 6.</div>
+        </article>
+
+        <article class="problem" data-id="3" data-answer="15">
+          <div class="problem-top">
+            <div class="problem-number">03</div>
+            <div>
+              <div class="problem-heading"><h3>Square Divisors</h3><span class="badge">Number Theory</span></div>
+              <p class="question">How many positive divisors of 2<sup>8</sup> · 3<sup>5</sup> are perfect squares?</p>
+            </div>
+            <span class="level">AMC 10</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-3" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-3" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-3">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-3" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 3"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-3"><strong>Hint:</strong> In a perfect square, every prime's exponent is even.</div>
+          <div class="reveal" id="answer-3"><strong>Answer: 15.</strong> The exponent of 2 can be 0, 2, 4, 6, or 8 (5 choices); the exponent of 3 can be 0, 2, or 4 (3 choices). Thus there are 5 × 3 = 15.</div>
+        </article>
+
+        <article class="problem" data-id="4" data-answer="70">
+          <div class="problem-top">
+            <div class="problem-number">04</div>
+            <div>
+              <div class="problem-heading"><h3>A Mixed Committee</h3><span class="badge">Combinatorics</span></div>
+              <p class="question">A committee of 3 is chosen from 4 adults and 5 students. How many committees include at least one adult and at least one student?</p>
+            </div>
+            <span class="level">AMC 10</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-4" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-4" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-4">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-4" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 4"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-4"><strong>Hint:</strong> Count all 3-person committees, then subtract the all-adult and all-student committees.</div>
+          <div class="reveal" id="answer-4"><strong>Answer: 70.</strong> There are C(9,3) = 84 committees total. Subtract C(4,3) = 4 all-adult and C(5,3) = 10 all-student committees: 84 − 4 − 10 = 70.</div>
+        </article>
+
+        <article class="problem" data-id="5" data-answer="47">
+          <div class="problem-top">
+            <div class="problem-number">05</div>
+            <div>
+              <div class="problem-heading"><h3>A Reciprocal Power</h3><span class="badge">Algebra</span></div>
+              <p class="question">If x + 1/x = 3, what is the value of x<sup>4</sup> + 1/x<sup>4</sup>?</p>
+            </div>
+            <span class="level">AMC 10/12</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-5" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-5" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-5">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-5" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 5"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-5"><strong>Hint:</strong> Square x + 1/x to find x² + 1/x², then square that result.</div>
+          <div class="reveal" id="answer-5"><strong>Answer: 47.</strong> First x² + 1/x² = 3² − 2 = 7. Then x⁴ + 1/x⁴ = 7² − 2 = 47.</div>
+        </article>
+
+        <article class="problem" data-id="6" data-answer="4">
+          <div class="problem-top">
+            <div class="problem-number">06</div>
+            <div>
+              <div class="problem-heading"><h3>Inradius from Sides</h3><span class="badge">Geometry</span></div>
+              <p class="question">A triangle has side lengths 13, 14, and 15. What is its inradius?</p>
+            </div>
+            <span class="level">AMC 10/12</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-6" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-6" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-6">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-6" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 6"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-6"><strong>Hint:</strong> Find the area with Heron's formula, then use area = inradius × semiperimeter.</div>
+          <div class="reveal" id="answer-6"><strong>Answer: 4.</strong> The semiperimeter is 21 and the area is √(21 · 8 · 7 · 6) = 84. Since area = r · 21, the inradius is 4.</div>
+        </article>
+
+        <article class="problem" data-id="7" data-answer="19/66">
+          <div class="problem-top">
+            <div class="problem-number">07</div>
+            <div>
+              <div class="problem-heading"><h3>Same-Color Draws</h3><span class="badge">Probability</span></div>
+              <p class="question">A bag contains 5 red, 4 blue, and 3 green marbles. Two marbles are drawn without replacement. What is the probability they have the same color?</p>
+            </div>
+            <span class="level">AMC 12</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-7" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-7" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-7">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-7" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 7"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-7"><strong>Hint:</strong> Count all same-color pairs, then divide by the number of ways to choose any 2 marbles.</div>
+          <div class="reveal" id="answer-7"><strong>Answer: 19/66.</strong> Favorable pairs: C(5,2) + C(4,2) + C(3,2) = 19. There are C(12,2) = 66 pairs total.</div>
+        </article>
+
+        <article class="problem" data-id="8" data-answer="119">
+          <div class="problem-top">
+            <div class="problem-number">08</div>
+            <div>
+              <div class="problem-heading"><h3>Remainder Conditions</h3><span class="badge">Number Theory</span></div>
+              <p class="question">What is the smallest positive integer that is divisible by 7 and leaves a remainder of 1 when divided by each of 2, 3, 4, 5, and 6?</p>
+            </div>
+            <span class="level">AMC 12</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-8" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-8" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-8">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-8" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 8"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-8"><strong>Hint:</strong> The first five remainder conditions mean n + 1 is a multiple of lcm(2, 3, 4, 5, 6) = 60. Then use divisibility by 7.</div>
+          <div class="reveal" id="answer-8"><strong>Answer: 119.</strong> Write n = 60k − 1. Modulo 7, this gives 4k ≡ 1, so k ≡ 2 (mod 7). The smallest positive choice is k = 2, giving n = 119.</div>
+        </article>
+
+        <article class="problem" data-id="9" data-answer="30">
+          <div class="problem-top">
+            <div class="problem-number">09</div>
+            <div>
+              <div class="problem-heading"><h3>No Matching Neighbors</h3><span class="badge">Combinatorics</span></div>
+              <p class="question">How many distinct arrangements of the letters A, A, B, B, C, C have no two identical letters adjacent?</p>
+            </div>
+            <span class="level">AIME</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-9" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-9" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-9">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-9" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 9"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-9"><strong>Hint:</strong> Use inclusion-exclusion on the three events that a matching pair is adjacent.</div>
+          <div class="reveal" id="answer-9"><strong>Answer: 30.</strong> There are 6!/(2!)³ = 90 arrangements total. Each chosen pair adjacent gives 5!/(2!)² = 30; each two-pair intersection gives 4!/2! = 12; all three pairs adjacent gives 3! = 6. Inclusion-exclusion gives 90 − 3·30 + 3·12 − 6 = 30.</div>
+        </article>
+
+        <article class="problem" data-id="10" data-answer="11257">
+          <div class="problem-top">
+            <div class="problem-number">10</div>
+            <div>
+              <div class="problem-heading"><h3>Digit Strings</h3><span class="badge">Combinatorics · Number Theory</span></div>
+              <p class="question">How many 10-digit strings using digits 0 through 9 (leading zeros allowed) have digit sum 10 and no two 0s adjacent?</p>
+            </div>
+            <span class="level">AIME · Final challenge</span>
+          </div>
+          <div class="problem-actions">
+            <button class="action reveal-toggle" data-target="hint-10" aria-expanded="false">Show hint</button>
+            <button class="action reveal-toggle" data-target="answer-10" aria-expanded="false">Show answer</button>
+          </div>
+          <form class="answer-form">
+            <label for="answer-input-10">Your answer</label>
+            <div class="answer-entry"><input id="answer-input-10" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 10"><button class="check-answer" type="submit">Check answer</button></div>
+            <p class="answer-feedback" role="status" aria-live="polite"></p>
+          </form>
+          <div class="reveal" id="hint-10"><strong>Hint:</strong> Let k be the number of nonzero digits. Their values are k positive integers summing to 10. Choose the zero positions so no two are adjacent, then multiply the counts and sum over k.</div>
+          <div class="reveal" id="answer-10"><strong>Answer: 11,257.</strong> For k nonzero digits, their values can be chosen in C(9,k−1) ways. The 10−k zeros can be placed with no two adjacent in C(k+1,10−k) ways. Summing C(9,k−1)C(k+1,10−k) for k = 5, 6, 7, 8, 9, 10 gives 756 + 4410 + 4704 + 1296 + 90 + 1 = 11,257.</div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer-note">Original practice problems · Made for curious minds</footer>
+  </div>
+
+  <script>
+    const storageKey = "daily-10-correct-progress-v1";
+    const problems = [...document.querySelectorAll(".problem")];
+    let solved = new Set();
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (Array.isArray(saved)) solved = new Set(saved.filter(id => problems.some(problem => problem.dataset.id === id)));
+    } catch (error) {
+      console.warn("Could not load saved Daily 10 progress.", error);
+    }
+
+    function renderProgress() {
+      document.querySelector("#solved-count").textContent = solved.size;
+      for (const problem of problems) {
+        const isSolved = solved.has(problem.dataset.id);
+        problem.classList.toggle("is-solved", isSolved);
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...solved]));
+      } catch (error) {
+        console.warn("Could not save Daily 10 progress.", error);
+      }
+    }
+
+    function gcd(a, b) {
+      a = a < 0n ? -a : a;
+      b = b < 0n ? -b : b;
+      while (b !== 0n) [a, b] = [b, a % b];
+      return a;
+    }
+
+    function rational(numerator, denominator) {
+      if (denominator === 0n) return null;
+      if (denominator < 0n) {
+        numerator = -numerator;
+        denominator = -denominator;
+      }
+      const divisor = gcd(numerator, denominator);
+      return { numerator: numerator / divisor, denominator: denominator / divisor };
+    }
+
+    function parseRational(value) {
+      const answer = value.trim().replace(/[−–]/g, "-");
+      const fraction = answer.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
+      if (fraction) return rational(BigInt(fraction[1]), BigInt(fraction[2]));
+
+      const decimal = answer.match(/^([+-]?)(\d*)(?:\.(\d*))?$/);
+      if (!decimal || (!decimal[2] && decimal[3] === undefined) || (!decimal[2] && !decimal[3])) return null;
+      const digits = decimal[2] + (decimal[3] || "");
+      const sign = decimal[1] === "-" ? -1n : 1n;
+      return rational(sign * BigInt(digits || "0"), 10n ** BigInt((decimal[3] || "").length));
+    }
+
+    function sameRational(first, second) {
+      return first !== null && second !== null &&
+        first.numerator === second.numerator &&
+        first.denominator === second.denominator;
+    }
+
+    document.addEventListener("submit", event => {
+      const form = event.target.closest(".answer-form");
+      if (!form) return;
+      event.preventDefault();
+
+      const problem = form.closest(".problem");
+      const input = form.querySelector("input");
+      const feedback = form.querySelector(".answer-feedback");
+      if (!input.value.trim()) {
+        feedback.textContent = "Enter an answer first.";
+        feedback.removeAttribute("data-state");
+        return;
+      }
+
+      const isCorrect = sameRational(parseRational(input.value), parseRational(problem.dataset.answer));
+      feedback.textContent = isCorrect ? "Correct! Nice work." : "Incorrect — try again.";
+      feedback.dataset.state = isCorrect ? "correct" : "incorrect";
+      if (isCorrect && !solved.has(problem.dataset.id)) {
+        solved.add(problem.dataset.id);
+        renderProgress();
+      }
+    });
+
+    document.addEventListener("input", event => {
+      if (!event.target.matches(".answer-form input")) return;
+      const feedback = event.target.closest(".answer-form").querySelector(".answer-feedback");
+      feedback.textContent = "";
+      feedback.removeAttribute("data-state");
+    });
+
+    document.addEventListener("click", event => {
+      const toggle = event.target.closest(".reveal-toggle");
+      if (toggle) {
+        const reveal = document.getElementById(toggle.dataset.target);
+        const isOpen = reveal.classList.toggle("is-visible");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+        toggle.textContent = `${isOpen ? "Hide" : "Show"} ${toggle.dataset.target.startsWith("hint") ? "hint" : "answer"}`;
+        return;
+      }
+
+    });
+
+    renderProgress();
+  </script>
+</body>
+</html>
