@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coordinate Graphing Studio</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f3f6fb;
+      font-synthesis: none;
+    }
+
+    * { box-sizing: border-box; }
+
+    body { margin: 0; min-height: 100vh; }
+
+    .app { max-width: 1440px; margin: 0 auto; padding: 28px; }
+
+    header { margin-bottom: 20px; }
+    .back-link { display: inline-block; margin-bottom: 14px; color: #3948b8; font-size: .85rem; font-weight: 650; text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.04em; }
+    header p { margin: 0; color: #667085; }
+
+    .layout { display: grid; grid-template-columns: minmax(270px, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+    .panel, .graph-panel { background: white; border: 1px solid #e1e7f0; border-radius: 16px; box-shadow: 0 8px 28px #1720330b; }
+    .panel { padding: 20px; }
+    .section + .section { border-top: 1px solid #edf0f5; margin-top: 20px; padding-top: 18px; }
+    h2 { font-size: 1rem; margin: 0 0 13px; }
+    label { display: block; font-size: .82rem; font-weight: 650; color: #344054; margin-bottom: 7px; }
+    input, select, button { font: inherit; }
+    input, select { width: 100%; padding: 10px 11px; border: 1px solid #d0d7e2; border-radius: 9px; background: white; color: #172033; outline: none; }
+    input:focus, select:focus { border-color: #6277e8; box-shadow: 0 0 0 3px #6277e826; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .range-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .field { min-width: 0; }
+    .help { color: #667085; font-size: .78rem; line-height: 1.45; margin: 7px 0 0; }
+    .primary, .secondary, .remove { border: 0; border-radius: 9px; cursor: pointer; font-weight: 650; }
+    .primary { width: 100%; margin-top: 12px; padding: 10px 13px; color: white; background: #4f5fd5; }
+    .primary:hover { background: #414fbd; }
+    .secondary { padding: 9px 12px; background: #eef1ff; color: #3948b8; }
+    .secondary:hover { background: #e3e7ff; }
+    .error { min-height: 1.2em; color: #b42318; font-size: .78rem; margin: 8px 0 0; }
+    .function-list { display: grid; gap: 7px; margin-top: 12px; }
+    .function-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #f7f8fb; border-radius: 8px; font-size: .8rem; }
+    .function-label { min-width: 0; overflow-wrap: anywhere; }
+    .graph-panel { padding: 14px; min-width: 0; }
+    .graph-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 1px 3px 12px; }
+    .graph-toolbar p { color: #667085; font-size: .8rem; margin: 0; }
+    .graph-toolbar-actions { display: flex; align-items: center; gap: 10px; }
+    .mode-control { display: flex; align-items: center; gap: 7px; margin: 0; white-space: nowrap; }
+    .mode-control select { width: auto; padding: 8px 10px; }
+    .canvas-wrap { width: 100%; height: min(72vh, 760px); min-height: 420px; overflow: hidden; border: 1px solid #e5e9f1; border-radius: 11px; background: #fff; }
+    canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    .shape-list { display: grid; gap: 7px; margin-top: 13px; }
+    .shape-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #f7f8fb; border-radius: 8px; font-size: .8rem; }
+    .shape-label { min-width: 0; overflow-wrap: anywhere; }
+    .remove { padding: 4px 8px; color: #667085; background: transparent; font-size: .75rem; }
+    .remove:hover { color: #b42318; background: #fff0ef; }
+    @media (max-width: 820px) {
+      .app { padding: 18px 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .canvas-wrap { height: 58vh; min-height: 350px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <a class="back-link" href="index.html">← Daily 10</a>
+      <h1>Coordinate Graphing Studio</h1>
+      <p>Plot equations and build shapes on Cartesian or polar grids.</p>
+    </header>
+
+    <div class="layout">
+      <aside class="panel" aria-label="Graph controls">
+        <section class="section">
+          <h2>Plot a function</h2>
+          <form id="function-form">
+            <label id="expression-label" for="expression">y =</label>
+            <input id="expression" value="sin(x)" autocomplete="off" spellcheck="false" aria-describedby="expression-help">
+            <p class="help" id="expression-help">Use x, + − × ÷, powers (^), parentheses, pi, sin, cos, tan, sinh, cosh, tanh, their inverses, sech, csch, coth, sqrt, abs, log, and exp.</p>
+            <p class="error" id="function-error" role="status"></p>
+            <button class="primary" type="submit">Plot function</button>
+          </form>
+          <div class="function-list" id="function-list" aria-live="polite"></div>
+        </section>
+
+        <section class="section">
+          <h2>Add a shape</h2>
+          <form id="shape-form">
+            <div class="field">
+              <label for="shape-type">Shape</label>
+              <select id="shape-type">
+                <option value="point">Point</option>
+                <option value="line">Line segment</option>
+                <option value="circle">Circle</option>
+                <option value="polygon">Polygon</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top: 12px">
+              <label for="shape-coordinates">Coordinates</label>
+              <input id="shape-coordinates" value="2, 3" autocomplete="off" spellcheck="false">
+              <p class="help" id="shape-help">Point: x, y</p>
+            </div>
+            <p class="error" id="shape-error" role="status"></p>
+            <button class="primary" type="submit">Add to graph</button>
+          </form>
+          <div class="shape-list" id="shape-list" aria-live="polite"></div>
+        </section>
+
+        <section class="section">
+          <h2 id="range-heading">Visible coordinates</h2>
+          <form id="range-form">
+            <div class="range-grid">
+              <div class="field"><label id="x-min-label" for="x-min">X minimum</label><input id="x-min" type="number" step="any" value="-10"></div>
+              <div class="field"><label id="x-max-label" for="x-max">X maximum</label><input id="x-max" type="number" step="any" value="10"></div>
+              <div class="field"><label id="y-min-label" for="y-min">Y minimum</label><input id="y-min" type="number" step="any" value="-10"></div>
+              <div class="field"><label id="y-max-label" for="y-max">Y maximum</label><input id="y-max" type="number" step="any" value="10"></div>
+            </div>
+            <p class="error" id="range-error" role="status"></p>
+            <button class="primary" type="submit">Set graph range</button>
+          </form>
+        </section>
+      </aside>
+
+      <section class="graph-panel" id="graph-region" aria-label="Cartesian graph">
+        <div class="graph-toolbar">
+          <p>Scroll to zoom · drag to pan</p>
+          <div class="graph-toolbar-actions">
+            <label class="mode-control" for="graph-mode">Graph
+              <select id="graph-mode">
+                <option value="cartesian">Cartesian</option>
+                <option value="polar">Polar</option>
+              </select>
+            </label>
+            <button class="secondary" id="reset-view" type="button">Reset view</button>
+          </div>
+        </div>
+        <div class="canvas-wrap"><canvas id="graph" aria-label="Interactive Cartesian plane"></canvas></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.querySelector("#graph");
+    const ctx = canvas.getContext("2d");
+    const rangeForm = document.querySelector("#range-form");
+    const functionForm = document.querySelector("#function-form");
+    const functionList = document.querySelector("#function-list");
+    const graphModeSelect = document.querySelector("#graph-mode");
+    const expressionInput = document.querySelector("#expression");
+    const expressionLabel = document.querySelector("#expression-label");
+    const expressionHelp = document.querySelector("#expression-help");
+    const shapeForm = document.querySelector("#shape-form");
+    const shapeType = document.querySelector("#shape-type");
+    const shapeCoordinates = document.querySelector("#shape-coordinates");
+    const shapeHelp = document.querySelector("#shape-help");
+    const shapeList = document.querySelector("#shape-list");
+    const cartesianBounds = { xMin: -10, xMax: 10, yMin: -10, yMax: 10 };
+    const polarBounds = { thetaMin: 0, thetaMax: Math.PI * 2, rMin: -10, rMax: 10 };
+    let graphMode = "cartesian";
+    let bounds = cartesianBounds;
+    const expressionDrafts = { cartesian: "sin(x)", polar: "sin(theta)" };
+    let plottedFunctions = [];
+    let shapes = [];
+    let drag = null;
+    let polarOffset = { x: 0, y: 0 };
+
+    const shapeInstructions = {
+      point: { placeholder: "2, 3", help: "Point: x, y" },
+      line: { placeholder: "-4, -2; 5, 3", help: "Line segment: x1, y1; x2, y2" },
+      circle: { placeholder: "0, 0, 4", help: "Circle: center x, center y, radius" },
+      polygon: { placeholder: "-3, -2; 2, -2; 0, 4", help: "Polygon: enter 3 or more x, y pairs separated by semicolons" }
+    };
+
+    function compileExpression(source, variableName = "x") {
+      const normalizedSource = source.replace(/[θΘ]/g, variableName).replace(/π/g, "pi");
+      const tokens = normalizedSource.match(/(?:\d*\.?\d+(?:e[+-]?\d+)?|[a-z]+|[()+\-*/^])/gi);
+      if (!tokens || tokens.join("") !== normalizedSource.replace(/\s+/g, "")) {
+        throw new Error("Use a valid expression with supported numbers, operators, and functions.");
+      }
+      let index = 0;
+      const peek = () => tokens[index];
+      const take = () => tokens[index++];
+      const expect = (token) => {
+        if (take() !== token) throw new Error(`Expected "${token}".`);
+      };
+
+      function parsePrimary() {
+        const token = take();
+        if (token === undefined) throw new Error("The expression is incomplete.");
+        if (token === "(") {
+          const value = parseSum();
+          expect(")");
+          return value;
+        }
+        if (/^(?:\d|\.)/.test(token)) return () => Number(token);
+        if (/^[a-z]+$/i.test(token)) {
+          const name = token.toLowerCase();
+          if (peek() === "(") {
+            const functions = {
+              sin: Math.sin, cos: Math.cos, tan: Math.tan,
+              sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
+              asinh: Math.asinh, acosh: Math.acosh, atanh: Math.atanh,
+              sech: (x) => 1 / Math.cosh(x),
+              csch: (x) => 1 / Math.sinh(x),
+              coth: (x) => 1 / Math.tanh(x),
+              sqrt: Math.sqrt, abs: Math.abs, log: Math.log, exp: Math.exp
+            };
+            if (!functions[name]) throw new Error(`Unknown function "${name}".`);
+            take();
+            const argument = parseSum();
+            expect(")");
+            return (x) => functions[name](argument(x));
+          }
+          if (name === variableName) return (value) => value;
+          if (name === "pi") return () => Math.PI;
+          if (name === "e") return () => Math.E;
+          throw new Error(`Unknown name "${name}".`);
+        }
+        throw new Error(`Unexpected token "${token}".`);
+      }
+
+      function parsePower() {
+        const left = parsePrimary();
+        if (peek() === "^") {
+          take();
+          const right = parseUnary();
+          return (x) => left(x) ** right(x);
+        }
+        return left;
+      }
+
+      function parseUnary() {
+        if (peek() === "+") {
+          take();
+          return parseUnary();
+        }
+        if (peek() === "-") {
+          take();
+          const value = parseUnary();
+          return (x) => -value(x);
+        }
+        return parsePower();
+      }
+
+      function parseProduct() {
+        let value = parseUnary();
+        while (peek() === "*" || peek() === "/") {
+          const operator = take();
+          const right = parseUnary();
+          const previous = value;
+          value = operator === "*"
+            ? (x) => previous(x) * right(x)
+            : (x) => previous(x) / right(x);
+        }
+        return value;
+      }
+
+      function parseSum() {
+        let value = parseProduct();
+        while (peek() === "+" || peek() === "-") {
+          const operator = take();
+          const right = parseProduct();
+          const previous = value;
+          value = operator === "+"
+            ? (x) => previous(x) + right(x)
+            : (x) => previous(x) - right(x);
+        }
+        return value;
+      }
+
+      const result = parseSum();
+      if (index !== tokens.length) throw new Error(`Unexpected token "${peek()}".`);
+      return result;
+    }
+
+    function niceStep(span) {
+      const rough = span / 10;
+      const power = 10 ** Math.floor(Math.log10(rough));
+      const fraction = rough / power;
+      return (fraction < 1.5 ? 1 : fraction < 3.5 ? 2 : fraction < 7.5 ? 5 : 10) * power;
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * ratio);
+      canvas.height = Math.round(rect.height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      draw();
+    }
+
+    function draw() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      if (!width || !height) return;
+      const polarRadius = graphMode === "polar" ? Math.max(Math.abs(bounds.rMin), Math.abs(bounds.rMax)) : 0;
+      const polarScale = graphMode === "polar" ? Math.min(width, height) / (2 * polarRadius) : 0;
+      const polarCenterX = width / 2 + polarOffset.x;
+      const polarCenterY = height / 2 + polarOffset.y;
+      const xToPixel = graphMode === "polar"
+        ? (x) => polarCenterX + x * polarScale
+        : (x) => (x - bounds.xMin) / (bounds.xMax - bounds.xMin) * width;
+      const yToPixel = graphMode === "polar"
+        ? (y) => polarCenterY - y * polarScale
+        : (y) => height - (y - bounds.yMin) / (bounds.yMax - bounds.yMin) * height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      if (graphMode === "polar") {
+        drawPolarGrid(width, height, polarRadius, polarScale, polarCenterX, polarCenterY);
+      } else {
+        const xStep = niceStep(bounds.xMax - bounds.xMin);
+        const yStep = niceStep(bounds.yMax - bounds.yMin);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#edf0f5";
+        ctx.fillStyle = "#788397";
+        ctx.font = "12px Inter, system-ui, sans-serif";
+
+        const xStart = Math.ceil(bounds.xMin / xStep) * xStep;
+        for (let x = xStart; x <= bounds.xMax; x += xStep) {
+          const px = xToPixel(x);
+          ctx.beginPath();
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, height);
+          ctx.stroke();
+          if (Math.abs(x) > xStep * 1e-8) {
+            ctx.textAlign = "center";
+            ctx.textBaseline = bounds.yMin < 0 && bounds.yMax > 0
+              ? (yToPixel(0) < height - 20 ? "top" : "bottom") : "bottom";
+            ctx.fillText(Number(x.toPrecision(4)).toString(), px, bounds.yMin < 0 && bounds.yMax > 0 ? yToPixel(0) + (yToPixel(0) < height - 20 ? 5 : -5) : height - 5);
+          }
+        }
+        const yStart = Math.ceil(bounds.yMin / yStep) * yStep;
+        for (let y = yStart; y <= bounds.yMax; y += yStep) {
+          const py = yToPixel(y);
+          ctx.beginPath();
+          ctx.moveTo(0, py);
+          ctx.lineTo(width, py);
+          ctx.stroke();
+          if (Math.abs(y) > yStep * 1e-8) {
+            ctx.textAlign = bounds.xMin < 0 && bounds.xMax > 0
+              ? (xToPixel(0) < 38 ? "left" : "right") : "left";
+            ctx.textBaseline = "middle";
+            const labelX = bounds.xMin < 0 && bounds.xMax > 0
+              ? xToPixel(0) + (xToPixel(0) < 38 ? 5 : -5) : 5;
+            ctx.fillText(Number(y.toPrecision(4)).toString(), labelX, py);
+          }
+        }
+
+        ctx.strokeStyle = "#667085";
+        ctx.lineWidth = 1.5;
+        if (bounds.xMin <= 0 && bounds.xMax >= 0) {
+          ctx.beginPath(); ctx.moveTo(xToPixel(0), 0); ctx.lineTo(xToPixel(0), height); ctx.stroke();
+        }
+        if (bounds.yMin <= 0 && bounds.yMax >= 0) {
+          ctx.beginPath(); ctx.moveTo(0, yToPixel(0)); ctx.lineTo(width, yToPixel(0)); ctx.stroke();
+        }
+      }
+
+      plottedFunctions.filter((plottedFunction) => plottedFunction.mode === graphMode).forEach((plottedFunction) => {
+        ctx.beginPath();
+        ctx.strokeStyle = plottedFunction.color;
+        ctx.lineWidth = 2.5;
+        let connected = false;
+        if (graphMode === "polar") {
+          const samples = Math.max(720, Math.ceil(width * 2));
+          for (let index = 0; index <= samples; index += 1) {
+            const theta = bounds.thetaMin + index / samples * (bounds.thetaMax - bounds.thetaMin);
+            const radius = plottedFunction.evaluate(theta);
+            const x = radius * Math.cos(theta);
+            const y = radius * Math.sin(theta);
+            const px = xToPixel(x);
+            const py = yToPixel(y);
+            if (!Number.isFinite(radius) || Math.abs(radius) > polarRadius * 3 ||
+                px < -width * 3 || px > width * 4 || py < -height * 3 || py > height * 4) {
+              connected = false;
+              continue;
+            }
+            if (!connected) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+            connected = true;
+          }
+        } else {
+          for (let px = 0; px <= width; px += 1) {
+            const x = bounds.xMin + px / width * (bounds.xMax - bounds.xMin);
+            const y = plottedFunction.evaluate(x);
+            const py = yToPixel(y);
+            if (!Number.isFinite(y) || py < -height * 3 || py > height * 4) {
+              connected = false;
+              continue;
+            }
+            if (!connected) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+            connected = true;
+          }
+        }
+        ctx.stroke();
+      });
+
+      shapes.forEach((shape) => drawShape(shape, xToPixel, yToPixel));
+    }
+
+    function drawPolarGrid(width, height, maxRadius, scale, centerX, centerY) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#edf0f5";
+      ctx.fillStyle = "#788397";
+      ctx.font = "12px Inter, system-ui, sans-serif";
+
+      const radiusStep = niceStep(maxRadius);
+      for (let radius = radiusStep; radius <= maxRadius + radiusStep * 1e-8; radius += radiusStep) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * scale, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(formatNumber(radius), centerX + radius * scale + 3, centerY - 3);
+      }
+
+      const angleLabels = ["0", "π/6", "π/3", "π/2", "2π/3", "5π/6", "π", "7π/6", "4π/3", "3π/2", "5π/3", "11π/6"];
+      for (let index = 0; index < 12; index += 1) {
+        const angle = index * Math.PI / 6;
+        const endX = centerX + maxRadius * scale * Math.cos(angle);
+        const endY = centerY - maxRadius * scale * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = index % 3 === 0 ? "#c7cfdd" : "#edf0f5";
+        ctx.lineWidth = index % 3 === 0 ? 1.5 : 1;
+        ctx.stroke();
+
+        const labelRadius = maxRadius * scale * 0.94;
+        ctx.fillStyle = "#788397";
+        ctx.textAlign = Math.cos(angle) > 0.35 ? "left" : Math.cos(angle) < -0.35 ? "right" : "center";
+        ctx.textBaseline = Math.sin(angle) > 0.35 ? "bottom" : Math.sin(angle) < -0.35 ? "top" : "middle";
+        ctx.fillText(angleLabels[index], centerX + labelRadius * Math.cos(angle), centerY - labelRadius * Math.sin(angle));
+      }
+      ctx.fillStyle = "#667085";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawShape(shape, xToPixel, yToPixel) {
+      ctx.save();
+      ctx.strokeStyle = shape.color;
+      ctx.fillStyle = shape.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (shape.type === "point") {
+        const [x, y] = shape.values;
+        ctx.arc(xToPixel(x), yToPixel(y), 5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (shape.type === "line") {
+        const [x1, y1, x2, y2] = shape.values;
+        ctx.moveTo(xToPixel(x1), yToPixel(y1));
+        ctx.lineTo(xToPixel(x2), yToPixel(y2));
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(xToPixel(x1), yToPixel(y1), 3, 0, Math.PI * 2);
+        ctx.arc(xToPixel(x2), yToPixel(y2), 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (shape.type === "circle") {
+        const [x, y, radius] = shape.values;
+        const radiusX = Math.abs(xToPixel(x + radius) - xToPixel(x));
+        const radiusY = Math.abs(yToPixel(y + radius) - yToPixel(y));
+        ctx.ellipse(xToPixel(x), yToPixel(y), radiusX, radiusY, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        shape.values.forEach(([x, y], index) => {
+          if (index === 0) ctx.moveTo(xToPixel(x), yToPixel(y));
+          else ctx.lineTo(xToPixel(x), yToPixel(y));
+        });
+        ctx.closePath();
+        ctx.globalAlpha = 0.14;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function setRangeInputs() {
+      const inputs = ["x-min", "x-max", "y-min", "y-max"];
+      const labels = graphMode === "polar"
+        ? ["θ minimum (rad)", "θ maximum (rad)", "r minimum", "r maximum"]
+        : ["X minimum", "X maximum", "Y minimum", "Y maximum"];
+      const values = graphMode === "polar"
+        ? [bounds.thetaMin, bounds.thetaMax, bounds.rMin, bounds.rMax]
+        : [bounds.xMin, bounds.xMax, bounds.yMin, bounds.yMax];
+      inputs.forEach((id, index) => {
+        document.querySelector(`#${id}`).value = values[index];
+        document.querySelector(`#${id}-label`).textContent = labels[index];
+      });
+    }
+
+    function formatNumber(value) {
+      return Number(value.toPrecision(5)).toString();
+    }
+
+    function renderFunctionList() {
+      functionList.replaceChildren();
+      plottedFunctions.filter((plottedFunction) => plottedFunction.mode === graphMode).forEach((plottedFunction) => {
+        const item = document.createElement("div");
+        item.className = "function-item";
+        const text = document.createElement("span");
+        text.className = "function-label";
+        text.textContent = `${graphMode === "polar" ? "r(θ)" : "y"} = ${plottedFunction.expression}`;
+        text.style.color = plottedFunction.color;
+        const remove = document.createElement("button");
+        remove.className = "remove";
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.setAttribute("aria-label", `Remove function ${graphMode === "polar" ? "r(theta)" : "y"} = ${plottedFunction.expression}`);
+        remove.addEventListener("click", () => {
+          plottedFunctions = plottedFunctions.filter((candidate) => candidate.id !== plottedFunction.id);
+          renderFunctionList();
+          draw();
+        });
+        item.append(text, remove);
+        functionList.append(item);
+      });
+    }
+
+    function describeShape(shape) {
+      const values = shape.type === "polygon"
+        ? shape.values.map(([x, y]) => `(${formatNumber(x)}, ${formatNumber(y)})`).join(" ")
+        : shape.values.map(formatNumber).join(", ");
+      const labels = { point: "Point", line: "Line", circle: "Circle", polygon: "Polygon" };
+      return `${labels[shape.type]}: ${values}`;
+    }
+
+    function renderShapeList() {
+      shapeList.replaceChildren();
+      shapes.forEach((shape) => {
+        const item = document.createElement("div");
+        item.className = "shape-item";
+        const text = document.createElement("span");
+        text.className = "shape-label";
+        text.textContent = describeShape(shape);
+        const remove = document.createElement("button");
+        remove.className = "remove";
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.setAttribute("aria-label", `Remove ${describeShape(shape)}`);
+        remove.addEventListener("click", () => {
+          shapes = shapes.filter((candidate) => candidate.id !== shape.id);
+          renderShapeList();
+          draw();
+        });
+        item.append(text, remove);
+        shapeList.append(item);
+      });
+    }
+
+    shapeType.addEventListener("change", () => {
+      const instruction = shapeInstructions[shapeType.value];
+      shapeCoordinates.value = instruction.placeholder;
+      shapeHelp.textContent = instruction.help;
+      document.querySelector("#shape-error").textContent = "";
+    });
+
+    functionForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = document.querySelector("#function-error");
+      try {
+        const variableName = graphMode === "polar" ? "theta" : "x";
+        const compiled = compileExpression(expressionInput.value, variableName);
+        for (let i = 0; i <= 20; i += 1) {
+          const value = graphMode === "polar"
+            ? bounds.thetaMin + i / 20 * (bounds.thetaMax - bounds.thetaMin)
+            : bounds.xMin + i / 20 * (bounds.xMax - bounds.xMin);
+          if (typeof compiled(value) !== "number") throw new Error("The expression must produce numbers.");
+        }
+        const colors = ["#4f5fd5", "#e27048", "#16876c", "#9d58b7", "#c18818"];
+        plottedFunctions.push({
+          id: crypto.randomUUID(),
+          expression: expressionInput.value.trim(),
+          evaluate: compiled,
+          mode: graphMode,
+          color: colors[plottedFunctions.length % colors.length]
+        });
+        renderFunctionList();
+        error.textContent = "";
+        draw();
+      } catch (issue) {
+        error.textContent = issue.message;
+      }
+    });
+
+    shapeForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = document.querySelector("#shape-error");
+      const type = shapeType.value;
+      const parseNumber = (value) => value.trim()
+        ? Number(value.trim().replace(/\u2212/g, "-"))
+        : NaN;
+      try {
+        let values;
+        if (type === "polygon") {
+          values = shapeCoordinates.value.split(";").map((pair) => {
+            const numbers = pair.split(",").map(parseNumber);
+            if (numbers.length !== 2 || numbers.some((value) => !Number.isFinite(value))) throw new Error("Each polygon vertex must be two finite numbers.");
+            return numbers;
+          });
+          if (values.length < 3) throw new Error("A polygon needs at least three vertices.");
+        } else if (type === "line") {
+          const coordinatePairs = shapeCoordinates.value.split(";");
+          values = coordinatePairs.length === 2
+            ? coordinatePairs.flatMap((pair) => pair.split(",").map(parseNumber))
+            : shapeCoordinates.value.split(",").map(parseNumber);
+          if (values.length !== 4 || values.some((value) => !Number.isFinite(value))) {
+            throw new Error("Enter two points as x1, y1; x2, y2.");
+          }
+        } else {
+          values = shapeCoordinates.value.split(",").map(parseNumber);
+          const expected = type === "point" ? 2 : 3;
+          if (values.length !== expected || values.some((value) => !Number.isFinite(value))) {
+            const format = { point: "x, y", circle: "center x, center y, radius" };
+            throw new Error(`Enter ${format[type]} using finite numbers.`);
+          }
+          if (type === "circle" && values[2] <= 0) throw new Error("The radius must be greater than zero.");
+        }
+        shapes.push({ id: crypto.randomUUID(), type, values, color: "#e27048" });
+        renderShapeList();
+        draw();
+        error.textContent = "";
+      } catch (issue) {
+        error.textContent = issue.message;
+      }
+    });
+
+    rangeForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = document.querySelector("#range-error");
+      const values = ["x-min", "x-max", "y-min", "y-max"]
+        .map((id) => Number(document.querySelector(`#${id}`).value));
+      const next = graphMode === "polar"
+        ? { thetaMin: values[0], thetaMax: values[1], rMin: values[2], rMax: values[3] }
+        : { xMin: values[0], xMax: values[1], yMin: values[2], yMax: values[3] };
+      if (values.some((value) => !Number.isFinite(value)) ||
+          values[0] >= values[1] || values[2] >= values[3] ||
+          (graphMode === "polar" && Math.max(Math.abs(values[2]), Math.abs(values[3])) === 0)) {
+        error.textContent = "Enter finite minimum and maximum values; each minimum must be smaller than its maximum.";
+        return;
+      }
+      Object.assign(bounds, next);
+      error.textContent = "";
+      draw();
+    });
+
+    expressionInput.addEventListener("input", () => {
+      expressionDrafts[graphMode] = expressionInput.value;
+    });
+
+    graphModeSelect.addEventListener("change", () => {
+      graphMode = graphModeSelect.value;
+      bounds = graphMode === "polar" ? polarBounds : cartesianBounds;
+      expressionInput.value = expressionDrafts[graphMode];
+      expressionLabel.textContent = graphMode === "polar" ? "r =" : "y =";
+      expressionHelp.textContent = graphMode === "polar"
+        ? "Use theta or θ in radians (for example, sin(theta) or cos(θ), with parentheses), arithmetic, powers (^), pi, and supported trig, hyperbolic, and math functions."
+        : "Use x, arithmetic, powers (^), parentheses, pi, and the supported trig, hyperbolic, and math functions.";
+      document.querySelector("#range-heading").textContent = graphMode === "polar" ? "Visible polar range" : "Visible coordinates";
+      document.querySelector("#graph-region").setAttribute("aria-label", graphMode === "polar" ? "Polar graph" : "Cartesian graph");
+      document.querySelector("#function-error").textContent = "";
+      document.querySelector("#range-error").textContent = "";
+      setRangeInputs();
+      renderFunctionList();
+      draw();
+    });
+
+    document.querySelector("#reset-view").addEventListener("click", () => {
+      Object.assign(cartesianBounds, { xMin: -10, xMax: 10, yMin: -10, yMax: 10 });
+      Object.assign(polarBounds, { thetaMin: 0, thetaMax: Math.PI * 2, rMin: -10, rMax: 10 });
+      bounds = graphMode === "polar" ? polarBounds : cartesianBounds;
+      polarOffset = { x: 0, y: 0 };
+      setRangeInputs();
+      draw();
+    });
+
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const factor = event.deltaY < 0 ? 0.85 : 1 / 0.85;
+      if (graphMode === "polar") {
+        bounds.rMin *= factor;
+        bounds.rMax *= factor;
+        setRangeInputs();
+        draw();
+        return;
+      }
+      const rect = canvas.getBoundingClientRect();
+      const fractionX = (event.clientX - rect.left) / rect.width;
+      const fractionY = 1 - (event.clientY - rect.top) / rect.height;
+      const anchorX = bounds.xMin + fractionX * (bounds.xMax - bounds.xMin);
+      const anchorY = bounds.yMin + fractionY * (bounds.yMax - bounds.yMin);
+      bounds.xMin = anchorX - (anchorX - bounds.xMin) * factor;
+      bounds.xMax = anchorX + (bounds.xMax - anchorX) * factor;
+      bounds.yMin = anchorY - (anchorY - bounds.yMin) * factor;
+      bounds.yMax = anchorY + (bounds.yMax - anchorY) * factor;
+      setRangeInputs();
+      draw();
+    }, { passive: false });
+
+    canvas.addEventListener("pointerdown", (event) => {
+      drag = {
+        x: event.clientX,
+        y: event.clientY,
+        mode: graphMode,
+        bounds: { ...bounds },
+        polarOffset: { ...polarOffset }
+      };
+      canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drag) return;
+      if (drag.mode !== graphMode) return;
+      if (graphMode === "polar") {
+        polarOffset = {
+          x: drag.polarOffset.x + event.clientX - drag.x,
+          y: drag.polarOffset.y + event.clientY - drag.y
+        };
+        draw();
+        return;
+      }
+      const rect = canvas.getBoundingClientRect();
+      const dx = (event.clientX - drag.x) / rect.width * (drag.bounds.xMax - drag.bounds.xMin);
+      const dy = (event.clientY - drag.y) / rect.height * (drag.bounds.yMax - drag.bounds.yMin);
+      bounds.xMin = drag.bounds.xMin - dx;
+      bounds.xMax = drag.bounds.xMax - dx;
+      bounds.yMin = drag.bounds.yMin + dy;
+      bounds.yMax = drag.bounds.yMax + dy;
+      setRangeInputs();
+      draw();
+    });
+    canvas.addEventListener("pointerup", () => { drag = null; });
+    canvas.addEventListener("pointercancel", () => { drag = null; });
+
+    new ResizeObserver(resizeCanvas).observe(canvas);
+    window.addEventListener("resize", resizeCanvas);
+    functionForm.requestSubmit();
+    resizeCanvas();
+  </script>
+</body>
+</html>

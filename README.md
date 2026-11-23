@@ -1,10 +1,10 @@
 # Daily 10 — Math Challenge
 
-A responsive daily set of 10 original AMC/AIME-style math problems, with hints, answer checking, and saved progress.
+A responsive daily set of 10 original AMC/AIME-style math problems, with hints, answer checking, and saved progress, plus an interactive coordinate graphing studio.
 
 ## Run locally
 
-Open `index.html` in a browser. The site has no build step or external dependencies.
+Open `index.html` in a browser. The graphing studio is at `graphing.html`. The site has no build step or external dependencies.
 
 ## Publish with GitHub Pages
 
