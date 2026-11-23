@@ -168,6 +168,7 @@
     let plottedFunctions = [];
     let shapes = [];
     let drag = null;
+    const panSensitivity = 0.35;
     let polarOffset = { x: 0, y: 0 };
 
     const shapeInstructions = {
@@ -724,15 +725,15 @@
       if (drag.mode !== graphMode) return;
       if (graphMode === "polar") {
         polarOffset = {
-          x: drag.polarOffset.x + event.clientX - drag.x,
-          y: drag.polarOffset.y + event.clientY - drag.y
+          x: drag.polarOffset.x + (event.clientX - drag.x) * panSensitivity,
+          y: drag.polarOffset.y + (event.clientY - drag.y) * panSensitivity
         };
         draw();
         return;
       }
       const rect = canvas.getBoundingClientRect();
-      const dx = (event.clientX - drag.x) / rect.width * (drag.bounds.xMax - drag.bounds.xMin);
-      const dy = (event.clientY - drag.y) / rect.height * (drag.bounds.yMax - drag.bounds.yMin);
+      const dx = (event.clientX - drag.x) / rect.width * (drag.bounds.xMax - drag.bounds.xMin) * panSensitivity;
+      const dy = (event.clientY - drag.y) / rect.height * (drag.bounds.yMax - drag.bounds.yMin) * panSensitivity;
       bounds.xMin = drag.bounds.xMin - dx;
       bounds.xMax = drag.bounds.xMax - dx;
       bounds.yMin = drag.bounds.yMin + dy;
