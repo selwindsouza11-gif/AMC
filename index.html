@@ -162,9 +162,13 @@
     .topic-chip[data-topic="Combinatorics & Probability"] { --dot: #a17b9a; }
     .topic-chip[data-topic="Number Theory"] { --dot: #7b9369; }
 
-    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 0 14px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 10px 0 14px; }
     .section-heading h2 { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: -.01em; }
     .section-heading span { color: var(--muted); font-size: 12px; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .archive-control { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .archive-control select { max-width: 250px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; }
+    .archive-control select:focus { outline: 3px solid var(--focus-ring); }
 
     .problem-list { display: grid; gap: 12px; padding-bottom: 48px; }
     .problem {
@@ -241,6 +245,9 @@
       .header-note { font-size: 11px; }
       .hero { grid-template-columns: 1fr; gap: 22px; padding: 45px 0 28px; }
       .score-card { width: fit-content; min-width: 150px; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .archive-control { width: 100%; justify-content: space-between; }
+      .archive-control select { flex: 1; }
       .problem-top { grid-template-columns: 38px 1fr; gap: 12px; padding: 17px 15px 16px; }
       .problem-number { width: 34px; height: 34px; }
       .level { grid-column: 2; grid-row: 2; }
@@ -273,8 +280,8 @@
           <p class="intro">A fresh ladder of original contest-style problems, from a quick warm-up to an AIME-level finish. Take them one at a time.</p>
         </div>
         <aside class="score-card" aria-live="polite">
-          <span class="score-label">Today's progress</span>
-          <span class="score-value"><span id="solved-count">0</span> <span style="color:var(--score-muted)">/ 10 solved</span></span>
+          <span class="score-label" id="progress-label">Today's progress</span>
+          <span class="score-value"><span id="solved-count">0</span> <span style="color:var(--score-muted)">/ <span id="total-count">10</span> solved</span></span>
         </aside>
       </section>
 
@@ -293,11 +300,16 @@
       </section>
 
       <div class="section-heading">
-        <h2>Today's set <span style="color:var(--muted);font-weight:500">· 10 problems</span></h2>
-        <span>Difficulty increases as you go ↓</span>
+        <div>
+          <h2 id="set-heading">Today's set · 10 problems</h2>
+          <p id="set-date-label">Seven-set cycle repeats · New set at local midnight · History stays in this browser.</p>
+        </div>
+        <label class="archive-control" for="saved-set-picker">Saved sets
+          <select id="saved-set-picker" aria-label="View a saved set"></select>
+        </label>
       </div>
 
-      <section class="problem-list" aria-label="Daily problems">
+      <section class="problem-list" id="problem-list" aria-label="Daily problems">
         <article class="problem" data-id="1" data-answer="6">
           <div class="problem-top">
             <div class="problem-number">01</div>
@@ -524,29 +536,45 @@
   </div>
 
   <script>
-    const storageKey = "daily-10-correct-progress-v1";
-    const problems = [...document.querySelectorAll(".problem")];
-    let solved = new Set();
+    const storageKey = "daily-10-saved-sets-v1";
+    const legacyProgressKey = "daily-10-correct-progress-v1";
+    const rotationStartDate = "2026-11-22";
+    const rotationLength = 7;
+    const dayMilliseconds = 24 * 60 * 60 * 1000;
+    const problemList = document.querySelector("#problem-list");
+    const picker = document.querySelector("#saved-set-picker");
+    const statusMessage = document.querySelector("#set-date-label");
+    const originalProblems = [...problemList.querySelectorAll(".problem")].map(problem => ({
+      id: problem.dataset.id,
+      answer: problem.dataset.answer,
+      title: problem.querySelector("h3").textContent,
+      topic: problem.querySelector(".badge").textContent,
+      question: problem.querySelector(".question").textContent,
+      level: problem.querySelector(".level").textContent,
+      hint: problem.querySelector('[id^="hint-"]').textContent.replace(/^Hint:\s*/, ""),
+      explanation: problem.querySelector('[id^="answer-"]').textContent.replace(/^Answer:\s*/, "")
+    }));
 
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (Array.isArray(saved)) solved = new Set(saved.filter(id => problems.some(problem => problem.dataset.id === id)));
-    } catch (error) {
-      console.warn("Could not load saved Daily 10 progress.", error);
+    originalProblems[2].question = "How many positive divisors of 2⁸ · 3⁵ are perfect squares?";
+    originalProblems[4].question = "If x + 1/x = 3, what is the value of x⁴ + 1/x⁴?";
+
+    const rotationSets = [
+      { id: "daily-set-v1-1", title: "Set 1", problems: originalProblems },
+      ...Array.from({ length: rotationLength - 1 }, (_, index) => createProblemSet(index + 1))
+    ];
+
+    let savedState = loadSavedState();
+    for (const set of rotationSets) {
+      if (!savedState.sets[set.id]) savedState.sets[set.id] = set;
     }
 
-    function renderProgress() {
-      document.querySelector("#solved-count").textContent = solved.size;
-      for (const problem of problems) {
-        const isSolved = solved.has(problem.dataset.id);
-        problem.classList.toggle("is-solved", isSolved);
-      }
-      try {
-        localStorage.setItem(storageKey, JSON.stringify([...solved]));
-      } catch (error) {
-        console.warn("Could not save Daily 10 progress.", error);
-      }
-    }
+    const todayInitially = localDateKey(new Date());
+    let selectedDate = todayInitially;
+    let observedToday = todayInitially;
+    migrateLegacyProgress();
+    let currentRecord = ensureDayRecord(selectedDate);
+    let midnightTimer;
+    saveSavedState();
 
     function gcd(a, b) {
       a = a < 0n ? -a : a;
@@ -583,6 +611,379 @@
         first.denominator === second.denominator;
     }
 
+    function choose(n, k) {
+      if (k < 0 || k > n) return 0;
+      let result = 1;
+      for (let i = 1; i <= Math.min(k, n - k); i += 1) result = result * (n - i + 1) / i;
+      return Math.round(result);
+    }
+
+    function factorial(n) {
+      let result = 1;
+      for (let value = 2; value <= n; value += 1) result *= value;
+      return result;
+    }
+
+    function gcdNumber(a, b) {
+      while (b !== 0) [a, b] = [b, a % b];
+      return a;
+    }
+
+    function simplifiedFraction(numerator, denominator) {
+      const divisor = gcdNumber(numerator, denominator);
+      return `${numerator / divisor}/${denominator / divisor}`;
+    }
+
+    function superscript(value) {
+      const digits = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+      return String(value).split("").map(digit => digits[digit]).join("");
+    }
+
+    function lcm(a, b) {
+      return a / gcdNumber(a, b) * b;
+    }
+
+    function createProblemSet(seed) {
+      const linearA = 3 + seed;
+      const linearB = 7 + 2 * seed;
+      const linearX = 6 + seed;
+      const linearC = linearA * linearX + linearB;
+      const rectangleLength = 11 + seed;
+      const rectangleWidth = 6 + seed;
+      const exponentTwo = 8 + 2 * seed;
+      const exponentThree = 5 + 2 * seed;
+      const adults = 4 + seed;
+      const students = 5 + seed;
+      const reciprocalSum = 3 + seed;
+      const scale = 1 + seed;
+      const red = 5 + seed;
+      const blue = 4 + seed;
+      const green = 3 + seed;
+      const rangeEnd = 6 + seed;
+      const divisors = [7, 11, 13, 17, 19, 23, 29];
+      const divisor = divisors[seed];
+      let remainderLcm = 1;
+      for (let value = 2; value <= rangeEnd; value += 1) remainderLcm = lcm(remainderLcm, value);
+      let multiplier = 1;
+      while ((remainderLcm * multiplier + 1) % divisor !== 0) multiplier += 1;
+      const remainderAnswer = remainderLcm * multiplier + 1;
+      const pairCount = 3 + seed;
+      let noAdjacentCount = 0;
+      for (let adjacentPairs = 0; adjacentPairs <= pairCount; adjacentPairs += 1) {
+        const term = choose(pairCount, adjacentPairs) *
+          factorial(2 * pairCount - adjacentPairs) /
+          2 ** (pairCount - adjacentPairs);
+        noAdjacentCount += (adjacentPairs % 2 === 0 ? 1 : -1) * term;
+      }
+      const stringLength = 10 + seed;
+      let digitStringCount = 0;
+      for (let nonzeroDigits = 2; nonzeroDigits <= Math.min(10, stringLength); nonzeroDigits += 1) {
+        const zeroDigits = stringLength - nonzeroDigits;
+        if (zeroDigits <= nonzeroDigits + 1) {
+          digitStringCount += choose(9, nonzeroDigits - 1) * choose(nonzeroDigits + 1, zeroDigits);
+        }
+      }
+      const triangleSides = [13, 14, 15].map(side => side * scale);
+      const totalMarbles = red + blue + green;
+      const sameColorPairs = choose(red, 2) + choose(blue, 2) + choose(green, 2);
+      const totalPairs = choose(totalMarbles, 2);
+      const solvedDivisors = (Math.floor(exponentTwo / 2) + 1) * (Math.floor(exponentThree / 2) + 1);
+      const committeeCount = choose(adults + students, 3) - choose(adults, 3) - choose(students, 3);
+      const reciprocalPower = (reciprocalSum ** 2 - 2) ** 2 - 2;
+      const inradius = 4 * scale;
+      const topics = ["Algebra", "Geometry", "Number Theory", "Combinatorics"];
+      const levels = ["Warm-up", "Warm-up", "AMC 10", "AMC 10", "AMC 10/12", "AMC 10/12", "AMC 12", "AMC 12", "AIME", "AIME · Final challenge"];
+      const problems = [
+        {
+          id: "1", title: "Quick Balance", topic: topics[0], level: levels[0],
+          question: `What is the value of x if ${linearA}x + ${linearB} = ${linearC}?`,
+          answer: String(linearX),
+          hint: "Undo the added constant first, then divide by the coefficient of x.",
+          explanation: `${linearC} − ${linearB} = ${linearA}x, so x = ${linearX}.`
+        },
+        {
+          id: "2", title: "Rectangle Reasoning", topic: topics[1], level: levels[1],
+          question: `A rectangle has perimeter ${2 * (rectangleLength + rectangleWidth)} and width ${rectangleWidth}. What is its area?`,
+          answer: String(rectangleLength * rectangleWidth),
+          hint: "Use the perimeter to find the length before multiplying by the width.",
+          explanation: `The length is ${rectangleLength}; the area is ${rectangleLength} × ${rectangleWidth} = ${rectangleLength * rectangleWidth}.`
+        },
+        {
+          id: "3", title: "Square Divisors", topic: topics[2], level: levels[2],
+          question: `How many positive divisors of 2${superscript(exponentTwo)} · 3${superscript(exponentThree)} are perfect squares?`,
+          answer: String(solvedDivisors),
+          hint: "For a perfect-square divisor, each prime exponent must be even.",
+          explanation: `The exponent of 2 has ${Math.floor(exponentTwo / 2) + 1} even choices and the exponent of 3 has ${Math.floor(exponentThree / 2) + 1}; the total is ${solvedDivisors}.`
+        },
+        {
+          id: "4", title: "A Mixed Committee", topic: topics[3], level: levels[3],
+          question: `A committee of 3 is chosen from ${adults} adults and ${students} students. How many committees include at least one adult and at least one student?`,
+          answer: String(committeeCount),
+          hint: "Count all committees, then subtract committees made up of only adults or only students.",
+          explanation: `There are C(${adults + students},3) committees total. Subtract C(${adults},3) all-adult and C(${students},3) all-student committees to get ${committeeCount}.`
+        },
+        {
+          id: "5", title: "A Reciprocal Power", topic: topics[0], level: levels[4],
+          question: `If x + 1/x = ${reciprocalSum}, what is x⁴ + 1/x⁴?`,
+          answer: String(reciprocalPower),
+          hint: "Square x + 1/x to find x² + 1/x², then square that expression.",
+          explanation: `First x² + 1/x² = ${reciprocalSum}² − 2 = ${reciprocalSum ** 2 - 2}. Squaring again and subtracting 2 gives ${reciprocalPower}.`
+        },
+        {
+          id: "6", title: "Inradius from Sides", topic: topics[1], level: levels[5],
+          question: `A triangle has side lengths ${triangleSides.join(", ")}. What is its inradius?`,
+          answer: String(inradius),
+          hint: "The sides are a scaled 13-14-15 triangle. Scale its area and semiperimeter by the same factor.",
+          explanation: `The 13-14-15 triangle has area 84 and semiperimeter 21, so its inradius is 84/21 = 4. Scaling by ${scale} gives inradius ${inradius}.`
+        },
+        {
+          id: "7", title: "Same-Color Draws", topic: "Probability", level: levels[6],
+          question: `A bag contains ${red} red, ${blue} blue, and ${green} green marbles. Two are drawn without replacement. What is the probability they have the same color?`,
+          answer: simplifiedFraction(sameColorPairs, totalPairs),
+          hint: "Count pairs within each color, then divide by the number of all possible pairs.",
+          explanation: `Same-color pairs: C(${red},2) + C(${blue},2) + C(${green},2) = ${sameColorPairs}. There are C(${totalMarbles},2) = ${totalPairs} total pairs, giving ${simplifiedFraction(sameColorPairs, totalPairs)}.`
+        },
+        {
+          id: "8", title: "Remainder Conditions", topic: topics[2], level: levels[7],
+          question: `What is the smallest positive integer divisible by ${divisor} that leaves a remainder of 1 when divided by every integer from 2 through ${rangeEnd}?`,
+          answer: String(remainderAnswer),
+          hint: `The remainder conditions mean n − 1 is a multiple of lcm(2, 3, …, ${rangeEnd}). Then use the divisibility condition modulo ${divisor}.`,
+          explanation: `Let L = ${remainderLcm} and write n = Lk + 1. The smallest positive k with ${remainderLcm}k + 1 divisible by ${divisor} is ${multiplier}, so n = ${remainderAnswer}.`
+        },
+        {
+          id: "9", title: "No Matching Neighbors", topic: topics[3], level: levels[8],
+          question: `How many distinct arrangements of ${Array.from({ length: pairCount }, (_, index) => String.fromCharCode(65 + index) + ", " + String.fromCharCode(65 + index)).join(", ")} have no identical letters adjacent?`,
+          answer: String(noAdjacentCount),
+          hint: "Use inclusion-exclusion. For each selected matching pair, join its two letters into one block.",
+          explanation: `Starting with (2·${pairCount})!/${2}^${pairCount} arrangements, inclusion-exclusion over adjacent matching pairs gives ${noAdjacentCount} valid arrangements.`
+        },
+        {
+          id: "10", title: "Digit Strings", topic: "Combinatorics · Number Theory", level: levels[9],
+          question: `How many ${stringLength}-digit strings using digits 0 through 9 (leading zeros allowed) have digit sum 10 and no two 0s adjacent?`,
+          answer: String(digitStringCount),
+          hint: `Let k be the number of nonzero digits. Choose positive digit values summing to 10, then place the ${stringLength} − k zeros in the gaps around them, at most one per gap.`,
+          explanation: `For each possible k, choose the nonzero values in C(9,k−1) ways and the zero gaps in C(k+1,${stringLength}−k) ways. Summing over valid k gives ${digitStringCount}.`
+        }
+      ];
+      return { id: `daily-set-v1-${seed + 1}`, title: `Set ${seed + 1}`, problems };
+    }
+
+    function loadSavedState() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+        if (stored && typeof stored === "object" &&
+            stored.sets && typeof stored.sets === "object" &&
+            stored.days && typeof stored.days === "object") return stored;
+      } catch (error) {
+        console.warn("Could not load saved problem sets.", error);
+      }
+      return { sets: {}, days: {} };
+    }
+
+    function saveSavedState() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(savedState));
+      } catch (error) {
+        statusMessage.textContent = "Could not save this set in this browser. Check available site storage.";
+        console.warn("Could not save problem sets.", error);
+      }
+    }
+
+    function localDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function dateOrdinal(dateKey) {
+      const [year, month, day] = dateKey.split("-").map(Number);
+      return Math.floor(Date.UTC(year, month - 1, day) / dayMilliseconds);
+    }
+
+    function setIndexForDate(dateKey) {
+      const offset = dateOrdinal(dateKey) - dateOrdinal(rotationStartDate);
+      return ((offset % rotationLength) + rotationLength) % rotationLength;
+    }
+
+    function ensureDayRecord(dateKey) {
+      if (!savedState.days[dateKey] || typeof savedState.days[dateKey] !== "object") {
+        const set = rotationSets[setIndexForDate(dateKey)];
+        savedState.days[dateKey] = { setId: set.id, solved: [], answers: {} };
+      }
+      const record = savedState.days[dateKey];
+      if (!Array.isArray(record.solved)) record.solved = [];
+      if (!record.answers || typeof record.answers !== "object" || Array.isArray(record.answers)) record.answers = {};
+      if (!savedState.sets[record.setId] || !Array.isArray(savedState.sets[record.setId].problems)) {
+        const fallback = rotationSets[setIndexForDate(dateKey)];
+        record.setId = fallback.id;
+        savedState.sets[fallback.id] = fallback;
+      }
+      const problemIds = new Set(savedState.sets[record.setId].problems.map(problem => problem.id));
+      record.solved = [...new Set(record.solved.filter(id => problemIds.has(id)))];
+      return record;
+    }
+
+    function updateSavedSetPicker() {
+      const dates = Object.keys(savedState.days).sort().reverse();
+      picker.replaceChildren();
+      for (const date of dates) {
+        const record = ensureDayRecord(date);
+        const set = savedState.sets[record.setId];
+        const option = document.createElement("option");
+        option.value = date;
+        option.textContent = `${date === localDateKey(new Date()) ? "Today · " : ""}${date} · ${set.title}`;
+        option.selected = date === selectedDate;
+        picker.append(option);
+      }
+    }
+
+    function createReveal(id, label, content) {
+      const reveal = document.createElement("div");
+      reveal.className = "reveal";
+      reveal.id = id;
+      const strong = document.createElement("strong");
+      strong.textContent = `${label}:`;
+      reveal.append(strong, ` ${content}`);
+      return reveal;
+    }
+
+    function createProblemCard(problem, record) {
+      const card = document.createElement("article");
+      card.className = "problem";
+      card.dataset.id = problem.id;
+      card.dataset.answer = problem.answer;
+      const top = document.createElement("div");
+      top.className = "problem-top";
+      const number = document.createElement("div");
+      number.className = "problem-number";
+      number.textContent = String(problem.id).padStart(2, "0");
+      const content = document.createElement("div");
+      const heading = document.createElement("div");
+      heading.className = "problem-heading";
+      const title = document.createElement("h3");
+      title.textContent = problem.title;
+      const topic = document.createElement("span");
+      topic.className = "badge";
+      topic.textContent = problem.topic;
+      heading.append(title, topic);
+      const question = document.createElement("p");
+      question.className = "question";
+      question.textContent = problem.question;
+      content.append(heading, question);
+      const level = document.createElement("span");
+      level.className = "level";
+      level.textContent = problem.level;
+      top.append(number, content, level);
+
+      const actions = document.createElement("div");
+      actions.className = "problem-actions";
+      for (const [label, target] of [["Show hint", `hint-${problem.id}`], ["Show answer", `answer-${problem.id}`]]) {
+        const button = document.createElement("button");
+        button.className = "action reveal-toggle";
+        button.dataset.target = target;
+        button.setAttribute("aria-expanded", "false");
+        button.textContent = label;
+        actions.append(button);
+      }
+
+      const form = document.createElement("form");
+      form.className = "answer-form";
+      const inputId = `answer-input-${problem.id}`;
+      const labelElement = document.createElement("label");
+      labelElement.htmlFor = inputId;
+      labelElement.textContent = "Your answer";
+      const entry = document.createElement("div");
+      entry.className = "answer-entry";
+      const input = document.createElement("input");
+      input.id = inputId;
+      input.type = "text";
+      input.inputMode = "text";
+      input.autocomplete = "off";
+      input.setAttribute("aria-label", `Your answer to problem ${problem.id}`);
+      input.value = typeof record.answers[problem.id] === "string" ? record.answers[problem.id] : "";
+      const submit = document.createElement("button");
+      submit.className = "check-answer";
+      submit.type = "submit";
+      submit.textContent = "Check answer";
+      entry.append(input, submit);
+      const feedback = document.createElement("p");
+      feedback.className = "answer-feedback";
+      feedback.setAttribute("role", "status");
+      feedback.setAttribute("aria-live", "polite");
+      if (record.solved.includes(problem.id)) {
+        card.classList.add("is-solved");
+        feedback.textContent = "Correct! Nice work.";
+        feedback.dataset.state = "correct";
+      }
+      form.append(labelElement, entry, feedback);
+      card.append(top, actions, form,
+        createReveal(`hint-${problem.id}`, "Hint", problem.hint),
+        createReveal(`answer-${problem.id}`, "Answer", problem.explanation));
+      return card;
+    }
+
+    function updateProgress() {
+      const set = savedState.sets[currentRecord.setId];
+      document.querySelector("#solved-count").textContent = currentRecord.solved.length;
+      document.querySelector("#total-count").textContent = set.problems.length;
+      document.querySelector("#progress-label").textContent =
+        selectedDate === localDateKey(new Date()) ? "Today's progress" : "Saved set progress";
+    }
+
+    function renderSelectedSet() {
+      currentRecord = ensureDayRecord(selectedDate);
+      const set = savedState.sets[currentRecord.setId];
+      const isToday = selectedDate === localDateKey(new Date());
+      document.querySelector("#set-heading").textContent =
+        `${isToday ? "Today's set" : "Saved set"} · ${set.problems.length} problems`;
+      statusMessage.textContent =
+        `${selectedDate} · ${set.title} of ${rotationLength} · Seven-set cycle repeats at local midnight; history stays in this browser.`;
+      problemList.replaceChildren(...set.problems.map(problem => createProblemCard(problem, currentRecord)));
+      updateSavedSetPicker();
+      updateProgress();
+    }
+
+    function migrateLegacyProgress() {
+      try {
+        const storedProgress = localStorage.getItem(legacyProgressKey);
+        if (storedProgress === null) return;
+        const legacy = JSON.parse(storedProgress);
+        if (!Array.isArray(legacy)) return;
+        const record = savedState.days[rotationStartDate] || {
+          setId: rotationSets[0].id,
+          solved: [],
+          answers: {}
+        };
+        record.setId = rotationSets[0].id;
+        record.solved = [...new Set([
+          ...(Array.isArray(record.solved) ? record.solved : []),
+          ...legacy.filter(id => /^[1-9]\d*$/.test(id) && id !== "8")
+        ])];
+        if (!record.answers || typeof record.answers !== "object" || Array.isArray(record.answers)) record.answers = {};
+        savedState.days[rotationStartDate] = record;
+        localStorage.removeItem(legacyProgressKey);
+      } catch (error) {
+        console.warn("Could not migrate saved Daily 10 progress.", error);
+      }
+    }
+
+    function rotateIfDateChanged() {
+      const today = localDateKey(new Date());
+      if (today !== observedToday) {
+        const previousToday = observedToday;
+        observedToday = today;
+        ensureDayRecord(today);
+        if (selectedDate === previousToday) selectedDate = today;
+        saveSavedState();
+        renderSelectedSet();
+      }
+      const now = new Date();
+      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      clearTimeout(midnightTimer);
+      midnightTimer = setTimeout(rotateIfDateChanged, nextMidnight.getTime() - now.getTime() + 50);
+    }
+
     document.addEventListener("submit", event => {
       const form = event.target.closest(".answer-form");
       if (!form) return;
@@ -591,26 +992,33 @@
       const problem = form.closest(".problem");
       const input = form.querySelector("input");
       const feedback = form.querySelector(".answer-feedback");
+      currentRecord.answers[problem.dataset.id] = input.value;
       if (!input.value.trim()) {
         feedback.textContent = "Enter an answer first.";
         feedback.removeAttribute("data-state");
+        saveSavedState();
         return;
       }
 
       const isCorrect = sameRational(parseRational(input.value), parseRational(problem.dataset.answer));
       feedback.textContent = isCorrect ? "Correct! Nice work." : "Incorrect — try again.";
       feedback.dataset.state = isCorrect ? "correct" : "incorrect";
-      if (isCorrect && !solved.has(problem.dataset.id)) {
-        solved.add(problem.dataset.id);
-        renderProgress();
+      if (isCorrect && !currentRecord.solved.includes(problem.dataset.id)) {
+        currentRecord.solved.push(problem.dataset.id);
+        problem.classList.add("is-solved");
       }
+      updateProgress();
+      saveSavedState();
     });
 
     document.addEventListener("input", event => {
       if (!event.target.matches(".answer-form input")) return;
+      const card = event.target.closest(".problem");
       const feedback = event.target.closest(".answer-form").querySelector(".answer-feedback");
       feedback.textContent = "";
       feedback.removeAttribute("data-state");
+      currentRecord.answers[card.dataset.id] = event.target.value;
+      saveSavedState();
     });
 
     document.addEventListener("click", event => {
@@ -620,12 +1028,22 @@
         const isOpen = reveal.classList.toggle("is-visible");
         toggle.setAttribute("aria-expanded", String(isOpen));
         toggle.textContent = `${isOpen ? "Hide" : "Show"} ${toggle.dataset.target.startsWith("hint") ? "hint" : "answer"}`;
-        return;
       }
-
     });
 
-    renderProgress();
+    picker.addEventListener("change", () => {
+      selectedDate = picker.value;
+      renderSelectedSet();
+    });
+
+    window.addEventListener("focus", rotateIfDateChanged);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) rotateIfDateChanged();
+    });
+
+    ensureDayRecord(todayInitially);
+    renderSelectedSet();
+    rotateIfDateChanged();
   </script>
 </body>
 </html>

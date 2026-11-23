@@ -6,6 +6,8 @@ A responsive daily set of 10 original AMC/AIME-style math problems, with hints, 
 
 Open `index.html` in a browser. The graphing studio is at `graphing.html`. The site has no build step or external dependencies.
 
+The Daily 10 rotates through a repeating cycle of seven original practice-set variants at midnight in the visitor's local timezone. The site saves each date's set, answers, and progress in that browser's local storage; saved sets are not synced across devices.
+
 ## Publish with GitHub Pages
 
 The workflow in `.github/workflows/pages.yml` enables GitHub Pages and deploys the site when changes are pushed to `main`.
