@@ -3,14 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111722" media="(prefers-color-scheme: dark)">
   <title>Coordinate Graphing Studio</title>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: light dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #172033;
-      background: #f3f6fb;
+      color: var(--text);
+      background: var(--page-bg);
       font-synthesis: none;
+      --page-bg: #f3f6fb;
+      --surface: #fff;
+      --field-bg: #fff;
+      --border: #e1e7f0;
+      --control-border: #d0d7e2;
+      --text: #172033;
+      --muted: #667085;
+      --label: #344054;
+      --primary: #4f5fd5;
+      --primary-hover: #414fbd;
+      --focus: #6277e8;
+      --focus-ring: #6277e826;
+      --secondary-bg: #eef1ff;
+      --secondary-hover: #e3e7ff;
+      --secondary-text: #3948b8;
+      --soft-bg: #f7f8fb;
+      --error: #b42318;
+      --canvas-bg: #fff;
+      --graph-grid: #edf0f5;
+      --graph-major-grid: #c7cfdd;
+      --graph-axis: #667085;
+      --graph-label: #788397;
+      --plot-1: #4f5fd5;
+      --plot-2: #e27048;
+      --plot-3: #16876c;
+      --plot-4: #9d58b7;
+      --plot-5: #c18818;
+      --shape-color: #e27048;
+      --shadow: 0 8px 28px #1720330b;
+      --remove-hover-bg: #fff0ef;
+      --remove-hover-text: #b42318;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #111722;
+        --surface: #192231;
+        --field-bg: #111722;
+        --border: #303c50;
+        --control-border: #3a465b;
+        --text: #e9eef8;
+        --muted: #a3afc3;
+        --label: #d0d9e8;
+        --primary: #6677ed;
+        --primary-hover: #7887f6;
+        --focus: #91a0ff;
+        --focus-ring: #91a0ff30;
+        --secondary-bg: #283151;
+        --secondary-hover: #354064;
+        --secondary-text: #c6ceff;
+        --soft-bg: #222d3e;
+        --error: #ff958b;
+        --canvas-bg: #111722;
+        --graph-grid: #273349;
+        --graph-major-grid: #3d4d67;
+        --graph-axis: #b1bfd4;
+        --graph-label: #a3b2c8;
+        --plot-1: #9aabff;
+        --plot-2: #ff9976;
+        --plot-3: #53d6ad;
+        --plot-4: #d69aef;
+        --plot-5: #f2c65d;
+        --shape-color: #ff9976;
+        --shadow: 0 8px 28px #0005;
+        --remove-hover-bg: #3a2528;
+        --remove-hover-text: #ffaaa2;
+      }
     }
 
     * { box-sizing: border-box; }
@@ -20,46 +89,46 @@
     .app { max-width: 1440px; margin: 0 auto; padding: 28px; }
 
     header { margin-bottom: 20px; }
-    .back-link { display: inline-block; margin-bottom: 14px; color: #3948b8; font-size: .85rem; font-weight: 650; text-decoration: none; }
+    .back-link { display: inline-block; margin-bottom: 14px; color: var(--secondary-text); font-size: .85rem; font-weight: 650; text-decoration: none; }
     .back-link:hover { text-decoration: underline; }
     h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 3vw, 2.2rem); letter-spacing: -0.04em; }
-    header p { margin: 0; color: #667085; }
+    header p { margin: 0; color: var(--muted); }
 
     .layout { display: grid; grid-template-columns: minmax(270px, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
-    .panel, .graph-panel { background: white; border: 1px solid #e1e7f0; border-radius: 16px; box-shadow: 0 8px 28px #1720330b; }
+    .panel, .graph-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); }
     .panel { padding: 20px; }
-    .section + .section { border-top: 1px solid #edf0f5; margin-top: 20px; padding-top: 18px; }
+    .section + .section { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 18px; }
     h2 { font-size: 1rem; margin: 0 0 13px; }
-    label { display: block; font-size: .82rem; font-weight: 650; color: #344054; margin-bottom: 7px; }
+    label { display: block; font-size: .82rem; font-weight: 650; color: var(--label); margin-bottom: 7px; }
     input, select, button { font: inherit; }
-    input, select { width: 100%; padding: 10px 11px; border: 1px solid #d0d7e2; border-radius: 9px; background: white; color: #172033; outline: none; }
-    input:focus, select:focus { border-color: #6277e8; box-shadow: 0 0 0 3px #6277e826; }
+    input, select { width: 100%; padding: 10px 11px; border: 1px solid var(--control-border); border-radius: 9px; background: var(--field-bg); color: var(--text); outline: none; }
+    input:focus, select:focus { border-color: var(--focus); box-shadow: 0 0 0 3px var(--focus-ring); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .range-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
     .field { min-width: 0; }
-    .help { color: #667085; font-size: .78rem; line-height: 1.45; margin: 7px 0 0; }
+    .help { color: var(--muted); font-size: .78rem; line-height: 1.45; margin: 7px 0 0; }
     .primary, .secondary, .remove { border: 0; border-radius: 9px; cursor: pointer; font-weight: 650; }
-    .primary { width: 100%; margin-top: 12px; padding: 10px 13px; color: white; background: #4f5fd5; }
-    .primary:hover { background: #414fbd; }
-    .secondary { padding: 9px 12px; background: #eef1ff; color: #3948b8; }
-    .secondary:hover { background: #e3e7ff; }
-    .error { min-height: 1.2em; color: #b42318; font-size: .78rem; margin: 8px 0 0; }
+    .primary { width: 100%; margin-top: 12px; padding: 10px 13px; color: white; background: var(--primary); }
+    .primary:hover { background: var(--primary-hover); }
+    .secondary { padding: 9px 12px; background: var(--secondary-bg); color: var(--secondary-text); }
+    .secondary:hover { background: var(--secondary-hover); }
+    .error { min-height: 1.2em; color: var(--error); font-size: .78rem; margin: 8px 0 0; }
     .function-list { display: grid; gap: 7px; margin-top: 12px; }
-    .function-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #f7f8fb; border-radius: 8px; font-size: .8rem; }
+    .function-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--soft-bg); border-radius: 8px; font-size: .8rem; }
     .function-label { min-width: 0; overflow-wrap: anywhere; }
     .graph-panel { padding: 14px; min-width: 0; }
     .graph-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 1px 3px 12px; }
-    .graph-toolbar p { color: #667085; font-size: .8rem; margin: 0; }
+    .graph-toolbar p { color: var(--muted); font-size: .8rem; margin: 0; }
     .graph-toolbar-actions { display: flex; align-items: center; gap: 10px; }
     .mode-control { display: flex; align-items: center; gap: 7px; margin: 0; white-space: nowrap; }
     .mode-control select { width: auto; padding: 8px 10px; }
-    .canvas-wrap { width: 100%; height: min(72vh, 760px); min-height: 420px; overflow: hidden; border: 1px solid #e5e9f1; border-radius: 11px; background: #fff; }
+    .canvas-wrap { width: 100%; height: min(72vh, 760px); min-height: 420px; overflow: hidden; border: 1px solid var(--border); border-radius: 11px; background: var(--canvas-bg); }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
     .shape-list { display: grid; gap: 7px; margin-top: 13px; }
-    .shape-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #f7f8fb; border-radius: 8px; font-size: .8rem; }
+    .shape-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--soft-bg); border-radius: 8px; font-size: .8rem; }
     .shape-label { min-width: 0; overflow-wrap: anywhere; }
-    .remove { padding: 4px 8px; color: #667085; background: transparent; font-size: .75rem; }
-    .remove:hover { color: #b42318; background: #fff0ef; }
+    .remove { padding: 4px 8px; color: var(--muted); background: transparent; font-size: .75rem; }
+    .remove:hover { color: var(--remove-hover-text); background: var(--remove-hover-bg); }
     @media (max-width: 820px) {
       .app { padding: 18px 14px; }
       .layout { grid-template-columns: 1fr; }
@@ -301,6 +370,11 @@
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
       if (!width || !height) return;
+      const theme = getComputedStyle(document.documentElement);
+      const gridColor = theme.getPropertyValue("--graph-grid").trim();
+      const majorGridColor = theme.getPropertyValue("--graph-major-grid").trim();
+      const axisColor = theme.getPropertyValue("--graph-axis").trim();
+      const labelColor = theme.getPropertyValue("--graph-label").trim();
       const polarRadius = graphMode === "polar" ? Math.max(Math.abs(bounds.rMin), Math.abs(bounds.rMax)) : 0;
       const polarScale = graphMode === "polar" ? Math.min(width, height) / (2 * polarRadius) : 0;
       const polarCenterX = width / 2 + polarOffset.x;
@@ -312,17 +386,17 @@
         ? (y) => polarCenterY - y * polarScale
         : (y) => height - (y - bounds.yMin) / (bounds.yMax - bounds.yMin) * height;
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = theme.getPropertyValue("--canvas-bg").trim();
       ctx.fillRect(0, 0, width, height);
 
       if (graphMode === "polar") {
-        drawPolarGrid(width, height, polarRadius, polarScale, polarCenterX, polarCenterY);
+        drawPolarGrid(width, height, polarRadius, polarScale, polarCenterX, polarCenterY, gridColor, majorGridColor, axisColor, labelColor);
       } else {
         const xStep = niceStep(bounds.xMax - bounds.xMin);
         const yStep = niceStep(bounds.yMax - bounds.yMin);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = "#edf0f5";
-        ctx.fillStyle = "#788397";
+        ctx.strokeStyle = gridColor;
+        ctx.fillStyle = labelColor;
         ctx.font = "12px Inter, system-ui, sans-serif";
 
         const xStart = Math.ceil(bounds.xMin / xStep) * xStep;
@@ -356,7 +430,7 @@
           }
         }
 
-        ctx.strokeStyle = "#667085";
+        ctx.strokeStyle = axisColor;
         ctx.lineWidth = 1.5;
         if (bounds.xMin <= 0 && bounds.xMax >= 0) {
           ctx.beginPath(); ctx.moveTo(xToPixel(0), 0); ctx.lineTo(xToPixel(0), height); ctx.stroke();
@@ -409,10 +483,10 @@
       shapes.forEach((shape) => drawShape(shape, xToPixel, yToPixel));
     }
 
-    function drawPolarGrid(width, height, maxRadius, scale, centerX, centerY) {
+    function drawPolarGrid(width, height, maxRadius, scale, centerX, centerY, gridColor, majorGridColor, axisColor, labelColor) {
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "#edf0f5";
-      ctx.fillStyle = "#788397";
+      ctx.strokeStyle = gridColor;
+      ctx.fillStyle = labelColor;
       ctx.font = "12px Inter, system-ui, sans-serif";
 
       const radiusStep = niceStep(maxRadius);
@@ -433,17 +507,17 @@
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.lineTo(endX, endY);
-        ctx.strokeStyle = index % 3 === 0 ? "#c7cfdd" : "#edf0f5";
+        ctx.strokeStyle = index % 3 === 0 ? majorGridColor : gridColor;
         ctx.lineWidth = index % 3 === 0 ? 1.5 : 1;
         ctx.stroke();
 
         const labelRadius = maxRadius * scale * 0.94;
-        ctx.fillStyle = "#788397";
+        ctx.fillStyle = labelColor;
         ctx.textAlign = Math.cos(angle) > 0.35 ? "left" : Math.cos(angle) < -0.35 ? "right" : "center";
         ctx.textBaseline = Math.sin(angle) > 0.35 ? "bottom" : Math.sin(angle) < -0.35 ? "top" : "middle";
         ctx.fillText(angleLabels[index], centerX + labelRadius * Math.cos(angle), centerY - labelRadius * Math.sin(angle));
       }
-      ctx.fillStyle = "#667085";
+      ctx.fillStyle = axisColor;
       ctx.beginPath();
       ctx.arc(centerX, centerY, 2.5, 0, Math.PI * 2);
       ctx.fill();
@@ -580,7 +654,10 @@
             : bounds.xMin + i / 20 * (bounds.xMax - bounds.xMin);
           if (typeof compiled(value) !== "number") throw new Error("The expression must produce numbers.");
         }
-        const colors = ["#4f5fd5", "#e27048", "#16876c", "#9d58b7", "#c18818"];
+        const theme = getComputedStyle(document.documentElement);
+        const colors = Array.from({ length: 5 }, (_, index) =>
+          theme.getPropertyValue(`--plot-${index + 1}`).trim()
+        );
         plottedFunctions.push({
           id: crypto.randomUUID(),
           expression: expressionInput.value.trim(),
@@ -629,7 +706,8 @@
           }
           if (type === "circle" && values[2] <= 0) throw new Error("The radius must be greater than zero.");
         }
-        shapes.push({ id: crypto.randomUUID(), type, values, color: "#e27048" });
+        const color = getComputedStyle(document.documentElement).getPropertyValue("--shape-color").trim();
+        shapes.push({ id: crypto.randomUUID(), type, values, color });
         renderShapeList();
         draw();
         error.textContent = "";
@@ -747,6 +825,16 @@
 
     new ResizeObserver(resizeCanvas).observe(canvas);
     window.addEventListener("resize", resizeCanvas);
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      const theme = getComputedStyle(document.documentElement);
+      plottedFunctions.forEach((plottedFunction, index) => {
+        plottedFunction.color = theme.getPropertyValue(`--plot-${index % 5 + 1}`).trim();
+      });
+      shapes.forEach((shape) => {
+        shape.color = theme.getPropertyValue("--shape-color").trim();
+      });
+      draw();
+    });
     functionForm.requestSubmit();
     resizeCanvas();
   </script>

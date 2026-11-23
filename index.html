@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f4ef">
+  <meta name="theme-color" content="#f5f4ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111713" media="(prefers-color-scheme: dark)">
   <title>Daily 10 — Math Challenge</title>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: light dark;
       --paper: #f5f4ef;
       --card: #fffefa;
       --ink: #20231f;
@@ -17,6 +18,51 @@
       --green-soft: #e9f0e9;
       --orange: #e18b55;
       --shadow: 0 12px 36px rgb(35 39 32 / 5%);
+      --green-button: var(--green);
+      --chip-bg: rgb(255 254 250 / 65%);
+      --chip-text: #565950;
+      --solved-line: #b6c8b7;
+      --badge-bg: #f1f0ea;
+      --badge-text: #686b63;
+      --action-text: #4e554e;
+      --label-text: #565950;
+      --input-bg: white;
+      --focus-border: #8ca48e;
+      --focus-ring: rgb(53 94 72 / 12%);
+      --button-hover: #294a39;
+      --answer-bg: #f5f6f1;
+      --answer-text: #4b5249;
+      --incorrect: #a64f3c;
+      --score-muted: #9a9b94;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #111713;
+        --card: #191f1b;
+        --ink: #edf2ed;
+        --muted: #a0aca1;
+        --line: #303b33;
+        --green: #a2c9a7;
+        --green-soft: #29392d;
+        --green-button: #416f4b;
+        --shadow: 0 12px 36px rgb(0 0 0 / 22%);
+        --chip-bg: #202a23;
+        --chip-text: #d3ddd3;
+        --solved-line: #58715a;
+        --badge-bg: #29332c;
+        --badge-text: #c1ccc1;
+        --action-text: #d1dad1;
+        --label-text: #c5d0c5;
+        --input-bg: #121814;
+        --focus-border: #79a681;
+        --focus-ring: rgb(162 201 167 / 18%);
+        --button-hover: #345d3d;
+        --answer-bg: #202923;
+        --answer-text: #d6e0d6;
+        --incorrect: #ff9a86;
+        --score-muted: #8f9a90;
+      }
     }
 
     * { box-sizing: border-box; }
@@ -47,7 +93,7 @@
       height: 34px;
       place-items: center;
       border-radius: 11px;
-      background: var(--green);
+      background: var(--green-button);
       color: white;
       font-family: Georgia, serif;
       font-size: 21px;
@@ -105,8 +151,8 @@
       padding: 7px 11px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: rgb(255 254 250 / 65%);
-      color: #565950;
+      background: var(--chip-bg);
+      color: var(--chip-text);
       font-size: 12px;
       font-weight: 650;
     }
@@ -129,7 +175,7 @@
       box-shadow: var(--shadow);
       transition: border-color .2s, opacity .2s;
     }
-    .problem.is-solved { border-color: #b6c8b7; }
+    .problem.is-solved { border-color: var(--solved-line); }
     .problem-top { display: grid; grid-template-columns: 48px 1fr auto; gap: 16px; align-items: start; padding: 22px 23px 20px; }
     .problem-number {
       display: grid;
@@ -144,7 +190,7 @@
     }
     .problem-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
     .problem-heading h3 { margin: 0; font-size: 15px; font-weight: 750; }
-    .badge { padding: 3px 8px; border-radius: 999px; background: #f1f0ea; color: #686b63; font-size: 10px; font-weight: 750; }
+    .badge { padding: 3px 8px; border-radius: 999px; background: var(--badge-bg); color: var(--badge-text); font-size: 10px; font-weight: 750; }
     .level { color: var(--muted); font-size: 11px; font-weight: 650; white-space: nowrap; }
     .question { max-width: 750px; margin: 10px 0 0; font-size: 15px; line-height: 1.65; }
     .question strong { font-weight: 750; }
@@ -154,7 +200,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: transparent;
-      color: #4e554e;
+      color: var(--action-text);
       cursor: pointer;
       font-size: 12px;
       font-weight: 700;
@@ -163,7 +209,7 @@
     .action:hover { border-color: #b7c5b7; background: var(--green-soft); }
     .action[aria-expanded="true"] { border-color: #b7c5b7; background: var(--green-soft); color: var(--green); }
     .answer-form { max-width: 430px; margin: 0 23px 18px 87px; }
-    .answer-form label { display: block; margin-bottom: 6px; color: #565950; font-size: 12px; font-weight: 700; }
+    .answer-form label { display: block; margin-bottom: 6px; color: var(--label-text); font-size: 12px; font-weight: 700; }
     .answer-entry { display: flex; gap: 8px; }
     .answer-entry input {
       width: 100%;
@@ -171,19 +217,19 @@
       padding: 9px 11px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: white;
+      background: var(--input-bg);
       color: var(--ink);
       font: inherit;
       font-size: 13px;
     }
-    .answer-entry input:focus { border-color: #8ca48e; outline: 3px solid rgb(53 94 72 / 12%); }
-    .check-answer { flex: 0 0 auto; padding: 8px 13px; border: 0; border-radius: 8px; background: var(--green); color: white; cursor: pointer; font-size: 12px; font-weight: 750; }
-    .check-answer:hover { background: #294a39; }
+    .answer-entry input:focus { border-color: var(--focus-border); outline: 3px solid var(--focus-ring); }
+    .check-answer { flex: 0 0 auto; padding: 8px 13px; border: 0; border-radius: 8px; background: var(--green-button); color: white; cursor: pointer; font-size: 12px; font-weight: 750; }
+    .check-answer:hover { background: var(--button-hover); }
     .answer-feedback { margin: 7px 0 0; font-size: 12px; font-weight: 700; }
     .answer-feedback[data-state="correct"] { color: var(--green); }
-    .answer-feedback[data-state="incorrect"] { color: #a64f3c; }
+    .answer-feedback[data-state="incorrect"] { color: var(--incorrect); }
 
-    .reveal { display: none; margin: 0 23px 19px 87px; padding: 12px 14px; border-radius: 9px; background: #f5f6f1; color: #4b5249; font-size: 13px; }
+    .reveal { display: none; margin: 0 23px 19px 87px; padding: 12px 14px; border-radius: 9px; background: var(--answer-bg); color: var(--answer-text); font-size: 13px; }
     .reveal.is-visible { display: block; }
     .reveal strong { color: var(--green); }
 
@@ -228,7 +274,7 @@
         </div>
         <aside class="score-card" aria-live="polite">
           <span class="score-label">Today's progress</span>
-          <span class="score-value"><span id="solved-count">0</span> <span style="color:#9a9b94">/ 10 solved</span></span>
+          <span class="score-value"><span id="solved-count">0</span> <span style="color:var(--score-muted)">/ 10 solved</span></span>
         </aside>
       </section>
 
