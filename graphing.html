@@ -82,7 +82,7 @@
           <form id="function-form">
             <label id="expression-label" for="expression">y =</label>
             <input id="expression" value="sin(x)" autocomplete="off" spellcheck="false" aria-describedby="expression-help">
-            <p class="help" id="expression-help">Use x, + − × ÷, powers (^), parentheses, pi, sin, cos, tan, sinh, cosh, tanh, their inverses, sech, csch, coth, sqrt, abs, log, and exp.</p>
+            <p class="help" id="expression-help">Use x, arithmetic, powers (^), pi, e, sqrt(x), and cbrt(x). For example, use e^(pi/2) to raise e to pi/2; cbrt(x) also works for negative x. Trig, hyperbolic, and other math functions are supported.</p>
             <p class="error" id="function-error" role="status"></p>
             <button class="primary" type="submit">Plot function</button>
           </form>
@@ -210,7 +210,8 @@
               sech: (x) => 1 / Math.cosh(x),
               csch: (x) => 1 / Math.sinh(x),
               coth: (x) => 1 / Math.tanh(x),
-              sqrt: Math.sqrt, abs: Math.abs, log: Math.log, exp: Math.exp
+              sqrt: Math.sqrt, cbrt: Math.cbrt,
+              abs: Math.abs, log: Math.log, exp: Math.exp
             };
             if (!functions[name]) throw new Error(`Unknown function "${name}".`);
             take();
@@ -666,8 +667,8 @@
       expressionInput.value = expressionDrafts[graphMode];
       expressionLabel.textContent = graphMode === "polar" ? "r =" : "y =";
       expressionHelp.textContent = graphMode === "polar"
-        ? "Use theta or θ in radians (for example, sin(theta) or cos(θ), with parentheses), arithmetic, powers (^), pi, and supported trig, hyperbolic, and math functions."
-        : "Use x, arithmetic, powers (^), parentheses, pi, and the supported trig, hyperbolic, and math functions.";
+        ? "Use theta or θ in radians (for example, sin(theta) or cos(θ)), arithmetic, powers (^), pi, e, sqrt(x), and cbrt(x). Use parentheses for compound exponents such as e^(pi/2)."
+        : "Use x, arithmetic, powers (^), pi, e, sqrt(x), and cbrt(x). Use parentheses for compound exponents such as e^(pi/2); cbrt(x) works for negative x.";
       document.querySelector("#range-heading").textContent = graphMode === "polar" ? "Visible polar range" : "Visible coordinates";
       document.querySelector("#graph-region").setAttribute("aria-label", graphMode === "polar" ? "Polar graph" : "Cartesian graph");
       document.querySelector("#function-error").textContent = "";
