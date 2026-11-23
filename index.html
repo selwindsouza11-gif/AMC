@@ -285,6 +285,11 @@
           <span class="topic-chip" data-topic="Combinatorics & Probability">Combinatorics &amp; Probability</span>
           <span class="topic-chip" data-topic="Number Theory">Number Theory</span>
         </div>
+        <p class="intro" style="margin:0 0 25px;font-size:13px">
+          Want real AMC 10, AMC 12, and AIME problems?
+          <a href="https://live.poshenloh.com/past-contests" target="_blank" rel="noopener noreferrer">Browse Poshen Loh's past contests and solutions</a>.
+          The problems below are original companion practice.
+        </p>
       </section>
 
       <div class="section-heading">
@@ -447,7 +452,7 @@
           <div class="reveal" id="answer-7"><strong>Answer: 19/66.</strong> Favorable pairs: C(5,2) + C(4,2) + C(3,2) = 19. There are C(12,2) = 66 pairs total.</div>
         </article>
 
-        <article class="problem" data-id="8" data-answer="119">
+        <article class="problem" data-id="8" data-answer="301">
           <div class="problem-top">
             <div class="problem-number">08</div>
             <div>
@@ -465,8 +470,8 @@
             <div class="answer-entry"><input id="answer-input-8" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 8"><button class="check-answer" type="submit">Check answer</button></div>
             <p class="answer-feedback" role="status" aria-live="polite"></p>
           </form>
-          <div class="reveal" id="hint-8"><strong>Hint:</strong> The first five remainder conditions mean n + 1 is a multiple of lcm(2, 3, 4, 5, 6) = 60. Then use divisibility by 7.</div>
-          <div class="reveal" id="answer-8"><strong>Answer: 119.</strong> Write n = 60k − 1. Modulo 7, this gives 4k ≡ 1, so k ≡ 2 (mod 7). The smallest positive choice is k = 2, giving n = 119.</div>
+          <div class="reveal" id="hint-8"><strong>Hint:</strong> If n leaves remainder 1 when divided by each number from 2 through 6, what must be divisible by all five numbers? Use their least common multiple, then apply the condition that n is divisible by 7.</div>
+          <div class="reveal" id="answer-8"><strong>Answer: 301.</strong> The remainder conditions mean n − 1 is a multiple of lcm(2, 3, 4, 5, 6) = 60, so n = 60k + 1. Modulo 7, 4k + 1 ≡ 0, hence k ≡ 5 (mod 7). The smallest positive n occurs at k = 5, giving 301.</div>
         </article>
 
         <article class="problem" data-id="9" data-answer="30">
@@ -487,7 +492,7 @@
             <div class="answer-entry"><input id="answer-input-9" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 9"><button class="check-answer" type="submit">Check answer</button></div>
             <p class="answer-feedback" role="status" aria-live="polite"></p>
           </form>
-          <div class="reveal" id="hint-9"><strong>Hint:</strong> Use inclusion-exclusion on the three events that a matching pair is adjacent.</div>
+          <div class="reveal" id="hint-9"><strong>Hint:</strong> Start with all distinct arrangements of AABBCC. For each letter, treat its matching pair as one block to count arrangements where that pair is adjacent. Then use inclusion-exclusion to correct for arrangements counted for multiple adjacent pairs.</div>
           <div class="reveal" id="answer-9"><strong>Answer: 30.</strong> There are 6!/(2!)³ = 90 arrangements total. Each chosen pair adjacent gives 5!/(2!)² = 30; each two-pair intersection gives 4!/2! = 12; all three pairs adjacent gives 3! = 6. Inclusion-exclusion gives 90 − 3·30 + 3·12 − 6 = 30.</div>
         </article>
 
@@ -509,7 +514,7 @@
             <div class="answer-entry"><input id="answer-input-10" type="text" inputmode="text" autocomplete="off" aria-label="Your answer to problem 10"><button class="check-answer" type="submit">Check answer</button></div>
             <p class="answer-feedback" role="status" aria-live="polite"></p>
           </form>
-          <div class="reveal" id="hint-10"><strong>Hint:</strong> Let k be the number of nonzero digits. Their values are k positive integers summing to 10. Choose the zero positions so no two are adjacent, then multiply the counts and sum over k.</div>
+          <div class="reveal" id="hint-10"><strong>Hint:</strong> Let k be the number of nonzero digits. First choose their ordered values: they are positive integers summing to 10. Next, arrange the 10 − k zeros in the gaps before, between, and after those nonzero digits, using at most one zero per gap. Which values of k allow enough gaps?</div>
           <div class="reveal" id="answer-10"><strong>Answer: 11,257.</strong> For k nonzero digits, their values can be chosen in C(9,k−1) ways. The 10−k zeros can be placed with no two adjacent in C(k+1,10−k) ways. Summing C(9,k−1)C(k+1,10−k) for k = 5, 6, 7, 8, 9, 10 gives 756 + 4410 + 4704 + 1296 + 90 + 1 = 11,257.</div>
         </article>
       </section>
